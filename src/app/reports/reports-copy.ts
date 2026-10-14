@@ -1,0 +1,20 @@
+/** Texts of screen 16, admin-reportes.html (spec section 5); the states are the shared ones of the base. */
+export const REPORTS_COPY = Object.freeze({
+  areaLabel: 'Reportes',
+  eyebrow: 'Consultas operativas',
+  title: 'Reportes',
+  heroTitle: 'Información consolidada para decidir con claridad.',
+  heroText: 'Consulta reservas, ejecución, costos y caja sin mezclar la información de otros operadores. Las fechas se interpretan en la zona horaria del tenant.',
+  dashboardEyebrow: 'Dashboard diario',
+  dashboardTitle: 'Seguimiento operativo',
+  created: 'Reservas creadas hoy',
+  pending: 'Pendientes de pago',
+  pendingNote: 'Aún sin el abono mínimo: cupo sin confirmar',
+  confirmed: 'Confirmadas',
+  confirmedNote: 'Incluye las confirmadas con saldo',
+  withBalance: 'Confirmadas con saldo',
+  withBalanceNote: 'Con abono recibido y saldo por completar',
+  cancelled: 'Canceladas',
+  upcoming: 'Próximas a ejecutar',
+  reservations: 'Ir a reservas',
+});
