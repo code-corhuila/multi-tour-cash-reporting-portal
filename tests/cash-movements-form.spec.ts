@@ -178,7 +178,7 @@ describe('theMovementIsSentInCentsWithOneKeyPerIntention', () => {
   });
 
   it('sends once on a double click: the button is disabled while sending', async () => {
-    const { movements, submit, fill, button } = await render(['TENANT_ADMINISTRATOR']);
+    const { movements, submit, fill, button, settle: again } = await render(['TENANT_ADMINISTRATOR']);
     let answer!: (result: CashMovementResult) => void;
     movements.next = () => new Promise((resolve) => { answer = resolve; });
     fill({ type: 'EXPENSE', concept: 'Taxi', amount: '100' });
@@ -188,6 +188,7 @@ describe('theMovementIsSentInCentsWithOneKeyPerIntention', () => {
     expect(button('Registrar movimiento')!.disabled).toBe(true);
     answer({ kind: 'registered', placement: 'IN_DAY' });
     await first;
+    await again();
     expect(button('Registrar movimiento')!.disabled).toBe(false);
   });
 

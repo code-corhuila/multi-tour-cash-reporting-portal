@@ -105,6 +105,21 @@
 .csh-root .csh-cash-table th { padding: 0 12px 12px; color: var(--csh-soft); font-size: 0.69rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .csh-root .csh-cash-table td { padding: 15px 12px; border-top: 1px solid var(--csh-line); color: var(--csh-soft); font-size: 0.86rem; vertical-align: middle; }
 .csh-root .csh-cash-table small { display: block; margin-top: 4px; font-size: 0.72rem; }
+/* HU-CSH-001, screen 14: the panel "Registro de la jornada" with its head, "Cerrar caja" and the form of movements. */
+.csh-root .csh-cash-register-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.csh-root .csh-cash-form { display: grid; gap: 14px; margin-bottom: 22px; }
+.csh-root .csh-cash-form-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(190px, 1fr)); gap: 14px; }
+.csh-root .csh-cash-field { display: grid; align-content: start; gap: 6px; }
+.csh-root .csh-cash-field label { color: var(--csh-soft); font-size: 0.78rem; font-weight: 600; }
+.csh-root .csh-cash-field select, .csh-root .csh-cash-field input { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--csh-line-strong); border-radius: var(--csh-radius-control); background: var(--csh-surface); color: var(--csh-text); font: inherit; font-size: 0.88rem; }
+.csh-root .csh-cash-field [aria-invalid="true"] { border-color: var(--csh-error); }
+.csh-root .csh-cash-field-error { margin: 0; color: var(--csh-error); font-size: 0.75rem; line-height: 1.35; }
+.csh-root .csh-cash-feedback { margin: 0; padding: 10px 12px; border-radius: var(--csh-radius-control); background: var(--csh-muted); color: var(--csh-soft); font-size: 0.8rem; line-height: 1.45; }
+.csh-root .csh-cash-feedback-ok { background: var(--csh-success-soft); color: var(--csh-success); }
+.csh-root .csh-cash-feedback-error { background: var(--csh-error-soft); color: var(--csh-error); }
+.csh-root .csh-cash-form-actions { display: flex; justify-content: flex-end; gap: 10px; }
+.csh-root .csh-cash-primary { border-color: var(--csh-accent); background: var(--csh-accent); color: var(--csh-surface); }
+.csh-root .csh-cash-primary:hover:not(:disabled) { background: var(--csh-accent-strong); }
 @media (max-width: 860px) {
   .csh-root .csh-cash-hero { grid-template-columns: 1fr; }
 }
