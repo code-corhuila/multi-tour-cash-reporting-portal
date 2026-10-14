@@ -3,9 +3,6 @@ import { createApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { MountProps, PortalApiClient } from './app/shell-contract';
 import { sourceProviders } from './app/sources';
-import { PortalActor } from './app/shared/portal-capabilities';
-import { PORTAL_INITIAL_PARAMS } from './app/shared/portal-navigation';
-import { CONTAINER_NAVIGATION } from './app/shared/portal-slots';
 
 /** Portals mounted now; the stylesheet leaves with the last one. */
 let mounted = 0;
@@ -40,14 +37,7 @@ export function mountWith(element: HTMLElement, props: MountProps, sources: (cli
     if (mounted === 0) document.querySelector('link[data-csh-stylesheet]')?.remove();
   };
   createApplication({
-    providers: [
-      provideZonelessChangeDetection(),
-      // The actor and the area to show come from the container (plan D-04, D-05).
-      { provide: PortalActor, useValue: PortalActor.from(props.session.roles) },
-      { provide: PORTAL_INITIAL_PARAMS, useValue: props.initialParams ?? {} },
-      ...(props.navigate ? [{ provide: CONTAINER_NAVIGATION, useValue: props.navigate }] : []),
-      ...sources(props.apiClient),
-    ],
+    providers: [provideZonelessChangeDetection(), ...sources(props.apiClient)],
   }).then((created) => {
     app = created;
     if (cleaned) return app.destroy();
