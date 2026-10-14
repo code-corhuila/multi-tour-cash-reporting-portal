@@ -15,7 +15,7 @@ import { REPORTS_COPY } from '../reports-copy';
     <article class="csh-reports-card" aria-labelledby="csh-reports-monthly-title">
       <p class="csh-reports-eyebrow">{{ t.monthlyEyebrow }}</p>
       <h2 id="csh-reports-monthly-title" class="csh-reports-card-title">{{ t.monthlyTitle }}</h2>
-      <p class="csh-reports-note">{{ t.monthlyIntro }}</p>
+      <p class="csh-reports-note csh-reports-intro">{{ t.monthlyIntro }}</p>
       <csh-page-state [state]="load.state()" [emptyText]="t.monthlyEmpty">
         @let s = load.state();
         @if (s.kind === 'data') {
