@@ -54,7 +54,7 @@
 .csh-root .csh-reports-value { color: var(--csh-metric); font-size: clamp(1.45rem, 1rem + 1.2vw, 2.2rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
 .csh-root .csh-reports-note { color: var(--csh-soft); font-size: 0.83rem; line-height: 1.45; }
 .csh-root .csh-reports-intro { margin: 0 0 18px; font-size: 0.92rem; line-height: 1.6; }
-.csh-root .csh-reports-link { display: inline-block; margin-top: 18px; color: var(--csh-accent-strong); font-size: 0.82rem; font-weight: 600; cursor: pointer; }
+.csh-root .csh-reports-link { display: inline-block; margin: 18px 0 0; padding: 0; border: 0; background: none; font-family: inherit; color: var(--csh-accent-strong); font-size: 0.82rem; font-weight: 600; cursor: pointer; }
 /* HU-CSH-003, screen 16: the summary row above the dashboard (by order, not by DOM position) and the periods of the monthly report. */
 .csh-root csh-period-summary { grid-column: 1 / -1; order: -1; }
 .csh-root .csh-monthly-summary dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; margin: 0; padding: 16px 0; border-top: 1px solid var(--csh-line); border-bottom: 1px solid var(--csh-line); }

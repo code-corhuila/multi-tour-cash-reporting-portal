@@ -281,7 +281,7 @@ describe('optionalRolesReadTheReportWithNoAction', () => {
     expect(metrics(content).map((m) => m[1])).toEqual(['$4.150.000', '$3.380.000', '$480.000', '2']);
     expect(entries(content).length).toBe(2);
     expect(content.querySelectorAll('input, select, textarea, form').length).toBe(0);
-    expect(Array.from(content.querySelectorAll('button')).map((b) => flat(b.textContent))).toEqual(['Exportar CSV', 'Exportar PDF']);
+    expect(Array.from(content.querySelectorAll('button:not(.csh-reports-link)')).map((b) => flat(b.textContent))).toEqual(['Exportar CSV', 'Exportar PDF']);
   });
 });
 
