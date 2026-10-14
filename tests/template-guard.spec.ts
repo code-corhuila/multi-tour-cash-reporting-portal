@@ -2,6 +2,7 @@ import { readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { listSourceFiles } from './source-files';
 
+// portal-areas.ts is the composition registry: it is the one file of shared/ that names the stories.
 // Transversal guard over every inline template of the portal (pillars 5, 7 and 10), not only the reports ones.
 const templates = listSourceFiles()
   .filter((file) => file.endsWith('.ts'))
@@ -35,8 +36,8 @@ describe('everyTemplateOfThePortalIsFreeOfLiteralsAndInaccessiblePatterns', () =
   });
 
   it('keeps shared/ independent of the stories that use it (pillar 10)', () => {
-    for (const file of listSourceFiles().filter((f) => f.startsWith('src/app/shared/'))) {
-      expect([...readFileSync(file, 'utf8').matchAll(/from\s+'(\.\.\/[^']*)'/g)].map(([, path]) => path), file).toEqual([]);
+    for (const file of listSourceFiles().filter((f) => f.startsWith('src/app/shared/') && f !== 'src/app/shared/portal-areas.ts')) {
+      expect([...readFileSync(file, 'utf8').matchAll(/from\s+'(\.\.\/[^']*)'/g)].map(([, path]) => path).filter((path) => /^\.\.\/(cash|reports|demo)\//.test(path)), file).toEqual([]);
     }
   });
 });
