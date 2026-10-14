@@ -64,6 +64,13 @@ describe('finalCustomerAndUnknownRoleGetNoCashArea', () => {
   });
 });
 
+describe('portalShellCopy', () => {
+  it('keeps the brand and the navigation name in shell-copy.ts', async () => {
+    const { SHELL_COPY } = await import('../src/app/shared/shell-copy');
+    expect(SHELL_COPY).toEqual({ brand: 'MULTITOUR', navigation: 'Administración del operador' });
+  });
+});
+
 describe('portalShellSidebar', () => {
   it('draws the brand, the Spanish role and one item per available area, landing on the first one', async () => {
     const { host, items } = await shellAs(['MANAGER']);

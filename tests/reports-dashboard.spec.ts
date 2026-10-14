@@ -227,14 +227,13 @@ describe('aNewerLoadReplacesAnOlderOne', () => {
 describe('irAReservasAsksTheContainerToOpenReservationsOrIsNotDrawn', () => {
   const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('button.csh-reports-link')).find((l) => l.textContent?.trim() === 'Ir a reservas');
 
-  it('asks the container to open Reservas of the commercial portal, by click and by Enter', async () => {
+  it('asks the container to open Reservas of the commercial portal, as a native button (click, Enter and Space)', async () => {
     const navigate = vi.fn();
     const { host } = await renderPage(new FixedSource(DAY), [{ provide: PortalActor, useValue: PortalActor.from(['MANAGER']) }, { provide: CONTAINER_NAVIGATION, useValue: navigate }]);
     link(host)!.click();
-    link(host)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
-    expect(navigate).toHaveBeenCalledTimes(2);
+    expect(navigate).toHaveBeenCalledTimes(1);
     expect(navigate).toHaveBeenCalledWith({ portal: 'commercial-reservation-portal', area: 'reservations' });
-    expect(link(host)!.getAttribute('tabindex')).toBe('0');
+    expect(link(host)!.getAttribute('type')).toBe('button');
   });
 
   it('is not drawn while the container offers no navigation', async () => {
