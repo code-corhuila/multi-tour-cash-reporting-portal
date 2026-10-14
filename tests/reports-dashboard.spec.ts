@@ -229,7 +229,7 @@ describe('irAReservasAsksTheContainerToOpenReservationsOrIsNotDrawn', () => {
 
   it('asks the container to open Reservas of the commercial portal, by click and by Enter', async () => {
     const navigate = vi.fn();
-    const { host } = await renderPage(new FixedSource(DAY), [{ provide: CONTAINER_NAVIGATION, useValue: navigate }]);
+    const { host } = await renderPage(new FixedSource(DAY), [{ provide: PortalActor, useValue: PortalActor.from(['MANAGER']) }, { provide: CONTAINER_NAVIGATION, useValue: navigate }]);
     link(host)!.click();
     link(host)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(navigate).toHaveBeenCalledTimes(2);
