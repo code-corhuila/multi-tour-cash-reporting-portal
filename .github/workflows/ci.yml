@@ -1,0 +1,37 @@
+name: CI
+on:
+  pull_request:
+    branches: [develop, qa]
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+permissions:
+  contents: read
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - run: npm ci
+      - run: npm test
+      - run: npm run build:module:demo
+      - run: npm run build:module
+      - name: The production module carries no client, storage or address of its own (RN-CJ9)
+        run: |
+          ! grep -nE 'provideHttpClient|localStorage|sessionStorage|fetch\(|https?://[a-z0-9.-]+:[0-9]+|/api/v[0-9]' dist/portal.js
+      - name: Record the size of the mounted module
+        run: |
+          {
+            echo '### Mounted module'
+            echo '| File | Bytes | KB |'
+            echo '|---|---:|---:|'
+            for f in dist/portal.js dist/portal.css; do
+              b=$(stat -c %s "$f")
+              echo "| \`$f\` | $b | $(awk -v b="$b" 'BEGIN { printf "%.1f", b / 1024 }') |"
+            done
+          } >> "$GITHUB_STEP_SUMMARY"

@@ -1,0 +1,5 @@
+/* cash-reporting-portal: every rule lives under .csh-root with the csh- prefix (plan D-08). Tokens arrive with the shared base. */
+.csh-root {
+  display: block;
+  min-width: 0;
+}

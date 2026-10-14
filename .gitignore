@@ -1,0 +1,9 @@
+node_modules/
+dist/
+.angular/
+.env
+*.log
+*.pem
+keys/
+# Written by the native-federation build on every run.
+tsconfig.federation.json
