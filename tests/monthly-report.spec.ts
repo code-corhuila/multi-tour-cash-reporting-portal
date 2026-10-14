@@ -10,6 +10,7 @@ import { MonthlyReportComponent } from '../src/app/reports/components/monthly-re
 import { PeriodSummaryComponent } from '../src/app/reports/components/period-summary.component';
 import { ReportsPageComponent } from '../src/app/reports/pages/reports-page.component';
 import { PORTAL_AREAS, PORTAL_AREA_LIST } from '../src/app/shared/portal-areas';
+import { PORTAL_INITIAL_PARAMS } from '../src/app/shared/portal-navigation';
 import { PortalActor } from '../src/app/shared/portal-capabilities';
 import { PortalShellComponent } from '../src/app/shared/portal-shell.component';
 import { REPORTS_MONTHLY_BLOCKS } from '../src/app/shared/portal-slots';
@@ -75,7 +76,7 @@ async function renderPage(monthly: MonthlyReportSource, summary: PeriodSummarySo
 }
 
 async function shellAs(roles: string[], providers: Provider[] = [...demoSources({ request: vi.fn() }) as Provider[]]) {
-  TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(roles) }, ...providers] });
+  TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(roles) }, { provide: PORTAL_INITIAL_PARAMS, useValue: { area: 'reports' } }, ...providers] });
   const fixture = TestBed.createComponent(PortalShellComponent);
   await settle(fixture);
   const host: HTMLElement = fixture.nativeElement;
@@ -265,7 +266,8 @@ describe('irACajaOpensTheCash', () => {
   });
 
   it('is not drawn while the build has no area Caja', async () => {
-    const { host } = await shellAs(['MANAGER']);
+    const withoutCash = [{ provide: PORTAL_AREA_LIST, useValue: PORTAL_AREAS.filter((a) => a.key !== 'cash') }];
+    const { host } = await shellAs(['MANAGER'], [...demoSources({ request: vi.fn() }) as Provider[], ...withoutCash]);
     expect(link(host)).toBeUndefined();
     expect(flat(host.textContent)).not.toContain('Ir a caja');
   });
