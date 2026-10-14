@@ -15,7 +15,7 @@
   font: 1rem/1.5 "Manrope", "Segoe UI", system-ui, sans-serif;
 }
 .csh-root *, .csh-root *::before, .csh-root *::after { box-sizing: border-box; }
-.csh-root button { min-height: 40px; padding: 0 16px; border: 1px solid var(--csh-line-strong); border-radius: var(--csh-radius-control); background: var(--csh-surface); color: var(--csh-accent-strong); font: inherit; font-weight: 700; cursor: pointer; }
+.csh-root button { min-height: 40px; padding: 0 16px; border: 1px solid var(--csh-line-strong); border-radius: var(--csh-radius-control); background: var(--csh-surface); color: var(--csh-accent-strong); font: inherit; font-size: 0.86rem; font-weight: 600; cursor: pointer; }
 .csh-root button:hover:not(:disabled) { border-color: var(--csh-accent); }
 .csh-root button:disabled { cursor: not-allowed; opacity: 0.6; }
 .csh-root :focus-visible { outline: none; box-shadow: var(--csh-focus); }
@@ -23,51 +23,52 @@
 /* The operator sidebar of admin-caja.html, inside the portal element (lesson 7: no fixed, sticky or viewport size). */
 .csh-root .csh-shell { display: grid; grid-template-columns: 226px minmax(0, 1fr); min-height: 100%; }
 .csh-root .csh-sidebar { display: flex; flex-direction: column; padding: 22px 14px 18px; background: var(--csh-surface); border-right: 1px solid var(--csh-line); }
-.csh-root .csh-brand { margin: 0; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.12em; }
-.csh-root .csh-role { margin: 10px 0 26px; color: var(--csh-soft); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.csh-root .csh-brand { margin: 0; font-size: 0.9rem; font-weight: 700; letter-spacing: 0.12em; }
+.csh-root .csh-role { margin: 10px 0 26px; color: var(--csh-soft); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; }
 .csh-root .csh-nav { display: grid; gap: 2px; }
 .csh-root .csh-nav button { min-height: 0; padding: 9px 11px; border: 0; border-left: 3px solid transparent; border-radius: 7px; background: transparent; color: var(--csh-soft); font-size: 0.85rem; text-align: left; }
 .csh-root .csh-nav button:hover:not(.csh-is-active) { background: var(--csh-muted); color: var(--csh-text); }
-.csh-root .csh-nav button.csh-is-active { border-left-color: var(--csh-accent); background: var(--csh-accent-soft); color: var(--csh-accent-strong); font-weight: 800; }
+.csh-root .csh-nav button.csh-is-active { border-left-color: var(--csh-accent); background: var(--csh-accent-soft); color: var(--csh-accent-strong); font-weight: 600; }
 .csh-root .csh-content { width: min(100%, 1420px); padding: 32px clamp(20px, 4vw, 56px) 56px; }
 
 /* The four states (plan D-07). */
 .csh-root .csh-state-note { margin: 0; padding: 18px 0; color: var(--csh-soft); }
-.csh-root .csh-state-error { margin: 0 0 12px; padding: 12px 14px; border-radius: var(--csh-radius-control); background: var(--csh-error-soft); color: var(--csh-error); font-weight: 700; }
+.csh-root .csh-state-error { margin: 0 0 12px; padding: 12px 14px; border-radius: var(--csh-radius-control); background: var(--csh-error-soft); color: var(--csh-error); font-weight: 600; }
 
 /* HU-CSH-002, screen 16 (admin-reportes.html): header, hero and the dashboard article, in the column of the portal. */
 .csh-root .csh-reports-header { display: grid; gap: 8px; padding-bottom: 16px; margin-bottom: 22px; border-bottom: 1px solid var(--csh-line); }
-.csh-root .csh-reports-eyebrow { margin: 0; color: var(--csh-soft); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
+.csh-root .csh-reports-eyebrow { margin: 0; color: var(--csh-soft); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
 .csh-root .csh-reports-header .csh-reports-eyebrow { color: var(--csh-accent-strong); letter-spacing: 0.08em; }
-.csh-root .csh-reports-title { margin: 0; font-size: clamp(1.35rem, 1.15rem + 0.6vw, 1.7rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.csh-root .csh-reports-title { margin: 0; font-size: clamp(1.35rem, 1.15rem + 0.6vw, 1.7rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .csh-root .csh-reports-hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.7fr); gap: 28px; margin-bottom: 22px; padding: 25px 28px; border: 1px solid var(--csh-hero-line); border-radius: var(--csh-radius-panel); background: linear-gradient(135deg, var(--csh-hero-from), var(--csh-surface) 76%); }
-.csh-root .csh-reports-hero h2 { max-width: 740px; margin: 4px 0 0; font-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.58rem); letter-spacing: -0.045em; line-height: 1.25; }
+.csh-root .csh-reports-hero h2 { max-width: 740px; margin: 4px 0 0; font-weight: 700; font-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.58rem); letter-spacing: -0.03em; line-height: 1.25; }
 .csh-root .csh-reports-hero > p { margin: 0; color: var(--csh-soft); font-size: 0.92rem; line-height: 1.6; }
 .csh-root .csh-reports-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
 .csh-root .csh-reports-card { padding: 24px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-panel); background: var(--csh-surface); box-shadow: var(--csh-shadow); }
-.csh-root .csh-reports-card-title { margin: 4px 0 18px; font-size: 1.16rem; letter-spacing: -0.045em; }
+.csh-root .csh-reports-card-title { margin: 4px 0 18px; font-size: 1.16rem; font-weight: 700; letter-spacing: -0.03em; }
 .csh-root .csh-reports-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin: 0; }
 .csh-root .csh-reports-metric { display: grid; grid-column: span 2; align-content: start; gap: 8px; min-height: 145px; padding: 20px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-panel); background: var(--csh-surface); }
 .csh-root .csh-reports-metric:nth-child(n+4) { grid-column: span 3; }
-.csh-root .csh-reports-metric dt { color: var(--csh-soft); font-size: 0.8rem; font-weight: 700; }
+.csh-root .csh-reports-metric dt { color: var(--csh-soft); font-size: 0.8rem; font-weight: 600; }
 .csh-root .csh-reports-metric dd { margin: 0; }
-.csh-root .csh-reports-value { color: var(--csh-metric); font-size: clamp(1.45rem, 1rem + 1.2vw, 2.2rem); font-weight: 800; letter-spacing: -0.07em; line-height: 1; }
-.csh-root .csh-reports-note { color: var(--csh-soft); font-size: 0.77rem; line-height: 1.42; }
-.csh-root .csh-reports-link { display: inline-block; margin-top: 18px; color: var(--csh-accent-strong); font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+.csh-root .csh-reports-value { color: var(--csh-metric); font-size: clamp(1.45rem, 1rem + 1.2vw, 2.2rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1; }
+.csh-root .csh-reports-note { color: var(--csh-soft); font-size: 0.83rem; line-height: 1.45; }
+.csh-root .csh-reports-intro { margin: 0 0 18px; font-size: 0.92rem; line-height: 1.6; }
+.csh-root .csh-reports-link { display: inline-block; margin-top: 18px; color: var(--csh-accent-strong); font-size: 0.82rem; font-weight: 600; cursor: pointer; }
 /* HU-CSH-003, screen 16: the summary row above the dashboard (by order, not by DOM position) and the periods of the monthly report. */
 .csh-root csh-period-summary { grid-column: 1 / -1; order: -1; }
 .csh-root .csh-monthly-summary dl { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 20px; margin: 0; padding: 16px 0; border-top: 1px solid var(--csh-line); border-bottom: 1px solid var(--csh-line); }
 .csh-root .csh-monthly-metric { display: grid; gap: 2px; padding-left: 16px; border-left: 2px solid var(--csh-line-strong); }
-.csh-root .csh-monthly-metric dt { color: var(--csh-text); font-size: 0.8rem; font-weight: 700; }
+.csh-root .csh-monthly-metric dt { color: var(--csh-text); font-size: 0.86rem; font-weight: 600; }
 .csh-root .csh-monthly-metric .csh-reports-value { color: var(--csh-text); letter-spacing: -0.02em; }
 .csh-root .csh-monthly-metric dd { margin: 0; }
 .csh-root .csh-monthly-period { display: grid; gap: 8px; margin-top: 18px; }
-.csh-root .csh-monthly-heading { margin: 0; font-size: 1rem; letter-spacing: -0.03em; }
+.csh-root .csh-monthly-heading { margin: 0; font-size: 1rem; font-weight: 700; }
 .csh-root .csh-monthly-lines { display: grid; gap: 11px; margin: 0; }
 .csh-root .csh-monthly-lines div { display: flex; align-items: baseline; justify-content: space-between; gap: 16px; padding-bottom: 10px; border-bottom: 1px solid var(--csh-line); }
 .csh-root .csh-monthly-lines div:last-child { padding-bottom: 0; border-bottom: 0; }
 .csh-root .csh-monthly-lines dt { color: var(--csh-soft); font-size: 0.77rem; }
-.csh-root .csh-monthly-lines dd { margin: 0; font-size: 0.82rem; font-weight: 700; text-align: right; }
+.csh-root .csh-monthly-lines dd { margin: 0; font-size: 0.82rem; font-weight: 600; text-align: right; }
 
 @media (max-width: 860px) {
   .csh-root .csh-reports-hero, .csh-root .csh-reports-grid { grid-template-columns: 1fr; }
@@ -84,25 +85,25 @@
 
 /* HU-CSH-001, screen 14 (admin-caja.html), read side: header, note, hero, the seven metrics and the movements table. */
 .csh-root .csh-cash-header { display: grid; gap: 8px; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--csh-line); }
-.csh-root .csh-cash-eyebrow { margin: 0; color: var(--csh-soft); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
+.csh-root .csh-cash-eyebrow { margin: 0; color: var(--csh-soft); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
 .csh-root .csh-cash-header .csh-cash-eyebrow { color: var(--csh-accent-strong); letter-spacing: 0.08em; }
-.csh-root .csh-cash-title { margin: 0; font-size: clamp(1.35rem, 1.15rem + 0.6vw, 1.7rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.csh-root .csh-cash-title { margin: 0; font-size: clamp(1.35rem, 1.15rem + 0.6vw, 1.7rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .csh-root .csh-cash-access-note { margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-control); background: var(--csh-hero-from); color: var(--csh-soft); font-size: 0.78rem; line-height: 1.45; }
 .csh-root .csh-cash-hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.7fr); gap: 28px; margin-bottom: 22px; padding: 25px 28px; border: 1px solid var(--csh-hero-line); border-radius: var(--csh-radius-panel); background: linear-gradient(135deg, var(--csh-hero-from), var(--csh-surface) 76%); }
-.csh-root .csh-cash-hero h2 { max-width: 740px; margin: 4px 0 0; font-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.58rem); letter-spacing: -0.045em; line-height: 1.25; }
+.csh-root .csh-cash-hero h2 { max-width: 740px; margin: 4px 0 0; font-weight: 700; font-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.58rem); letter-spacing: -0.03em; line-height: 1.25; }
 .csh-root .csh-cash-hero p:not(.csh-cash-eyebrow) { margin: 0; color: var(--csh-soft); font-size: 0.92rem; line-height: 1.6; }
 .csh-root .csh-cash-metrics { display: grid; grid-template-columns: repeat(auto-fit, minmax(130px, 1fr)); gap: 20px; margin: 0 0 22px; padding: 16px 0; border-top: 1px solid var(--csh-line); border-bottom: 1px solid var(--csh-line); }
 .csh-root .csh-cash-metric { display: grid; align-content: start; gap: 2px; padding-left: 16px; border-left: 2px solid var(--csh-line-strong); }
-.csh-root .csh-cash-metric dt { color: var(--csh-soft); font-size: 0.8rem; font-weight: 700; }
+.csh-root .csh-cash-metric dt { color: var(--csh-soft); font-size: 0.8rem; font-weight: 600; }
 .csh-root .csh-cash-metric dd { margin: 0; }
-.csh-root .csh-cash-value { color: var(--csh-text); font-size: clamp(1.1rem, 0.95rem + 0.6vw, 1.35rem); font-weight: 800; letter-spacing: -0.02em; }
-.csh-root .csh-cash-note { color: var(--csh-soft); font-size: 0.75rem; line-height: 1.4; }
+.csh-root .csh-cash-value { color: var(--csh-text); font-size: clamp(1.25rem, 1rem + 0.7vw, 1.65rem); font-weight: 700; letter-spacing: -0.03em; line-height: 1.15; }
+.csh-root .csh-cash-note { color: var(--csh-soft); font-size: 0.83rem; line-height: 1.45; }
 .csh-root .csh-cash-panel { margin-top: 22px; padding: 25px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-panel); background: var(--csh-surface); box-shadow: var(--csh-shadow); }
-.csh-root .csh-cash-panel h2 { margin: 4px 0 20px; font-size: 1.18rem; letter-spacing: -0.045em; }
+.csh-root .csh-cash-panel h2 { margin: 4px 0 20px; font-size: 1.16rem; font-weight: 700; letter-spacing: -0.03em; }
 .csh-root .csh-cash-links { display: flex; flex-wrap: wrap; gap: 10px; }
 .csh-root .csh-cash-table-wrap { overflow-x: auto; }
 .csh-root .csh-cash-table { width: 100%; min-width: 640px; border-collapse: collapse; text-align: left; }
-.csh-root .csh-cash-table th { padding: 0 12px 12px; color: var(--csh-soft); font-size: 0.69rem; letter-spacing: 0.08em; text-transform: uppercase; }
+.csh-root .csh-cash-table th { padding: 0 12px 12px; font-weight: 600; color: var(--csh-soft); font-size: 0.69rem; letter-spacing: 0.08em; text-transform: uppercase; }
 .csh-root .csh-cash-table td { padding: 15px 12px; border-top: 1px solid var(--csh-line); color: var(--csh-soft); font-size: 0.86rem; vertical-align: middle; }
 .csh-root .csh-cash-table small { display: block; margin-top: 4px; font-size: 0.72rem; }
 @media (max-width: 860px) {
