@@ -1,4 +1,3 @@
-import type { PortalTarget } from '../../shared/portal-slots';
 /** The projection of the day (`daily_dashboard_projections`, 06-data): field names of the table, counts resolved by the service (RN-DB2). */
 export interface DailyDashboard {
   /** The day the numbers are of, `2026-09-03`. */
@@ -20,5 +19,5 @@ export abstract class DailyDashboardSource {
   abstract today(): Promise<DailyDashboard>;
 }
 
-/** Reservas (screen 10) belongs to the commercial portal: the container is asked to open it (DP-DB6). */
-export const RESERVATIONS_TARGET: PortalTarget = Object.freeze({ portal: 'commercial-reservation-portal', area: 'reservations' });
+/** Reservas (screen 10) belongs to the commercial portal: the container is asked to open it (DP-DB6, PROPUESTO). */
+export const RESERVATIONS_TARGET = Object.freeze({ portal: 'commercial-reservation-portal', area: 'reservations' });
