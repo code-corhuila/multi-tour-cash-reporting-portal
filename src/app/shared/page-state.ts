@@ -17,13 +17,8 @@ export class PageLoad<T> {
   private running?: Subscription;
 
   run(request: () => ObservableInput<readonly T[]>): void {
-    this.state.set({ kind: 'loading' });
-    this.refresh(request);
-  }
-
-  /** Reads again keeping what is on screen until the answer comes (a screen with a form must not be torn down by its own write). */
-  refresh(request: () => ObservableInput<readonly T[]>): void {
     this.stop();
+    this.state.set({ kind: 'loading' });
     this.running = from(request()).subscribe({
       next: (items) => this.state.set(items.length ? { kind: 'data', items } : { kind: 'empty' }),
       error: () => this.state.set({ kind: 'error', retry: () => this.run(request) }),

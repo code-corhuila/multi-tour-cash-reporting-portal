@@ -15,15 +15,6 @@ export function formatDate(isoDate: string): string {
   return match && month ? `${match[3]} ${month} ${match[1]}` : isoDate;
 }
 
-const MONTH_NAMES = ['Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio', 'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre'] as const;
-
-/** `2026-09-03` (or an ISO date-time) to `Septiembre 2026`, the month of a report (screen 16); any other text is returned as it came. */
-export function formatMonth(isoDate: string): string {
-  const match = /^(\d{4})-(\d{2})/.exec(isoDate);
-  const month = match ? MONTH_NAMES[Number(match[2]) - 1] : undefined;
-  return match && month ? `${month} ${match[1]}` : isoDate;
-}
-
 /** `2026-09-03T09:20:00` to `09:20`; any other text is returned as it came. */
 export function formatHour(isoDateTime: string): string { return /T(\d{2}:\d{2})/.exec(isoDateTime)?.[1] ?? isoDateTime; }
 
@@ -32,6 +23,3 @@ export function formatDateTime(isoDateTime: string): string {
   const hour = formatHour(isoDateTime);
   return hour === isoDateTime ? formatDate(isoDateTime) : `${formatDate(isoDateTime)} · ${hour}`;
 }
-
-/** Cents as whole pesos with no symbol or grouping, `4150000`, the unit of the exported CSV; the sign is kept. */
-export function formatPesos(cents: number): string { return String(Math.round(cents / 100)); }
