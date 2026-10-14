@@ -247,7 +247,7 @@ describe('irAReservasAsksTheContainerToOpenReservationsOrIsNotDrawn', () => {
     const navigate = vi.fn();
     const host = document.createElement('div');
     document.body.append(host);
-    const props = { apiClient: { request: vi.fn() } as never, session: { roles: ['MANAGER'], open: () => undefined, close: () => undefined }, navigate } as MountProps;
+    const props = { apiClient: { request: vi.fn() } as never, session: { roles: ['MANAGER'], open: () => undefined, close: () => undefined }, navigate, initialParams: { area: 'reports' } } as MountProps;
     const cleanup = entry.mountWith(host, props, demoSources);
     await vi.waitFor(() => expect(link(host)).toBeTruthy());
     link(host)!.click();
