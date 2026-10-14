@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
-import { MonthlyPeriod } from './monthly-period';
+import { MonthlyPeriod } from '../cash/data/monthly-report-source';
 import { formatCop, formatMonth } from './format';
 import { MONTHLY_PERIOD_COPY } from './monthly-period-copy';
 
