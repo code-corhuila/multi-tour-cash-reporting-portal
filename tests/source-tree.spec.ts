@@ -7,7 +7,12 @@ import { listSourceFiles } from './source-files';
 const SPECIFIED_TREE = [
   'src/app/app.component.ts',
   'src/app/app.config.ts',
+  'src/app/cash/cash-copy.ts',
+  'src/app/cash/components/cash-movements.component.ts',
+  'src/app/cash/data/cash-day-source.ts',
   'src/app/cash/data/monthly-report-source.ts',
+  'src/app/cash/pages/cash-day-page.component.ts',
+  'src/app/demo/cash-demo.ts',
   'src/app/demo/demo-fixtures.ts',
   'src/app/demo/monthly-report-demo.ts',
   'src/app/demo/reports-demo.ts',
