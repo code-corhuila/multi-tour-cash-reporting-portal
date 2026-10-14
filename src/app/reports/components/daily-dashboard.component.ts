@@ -29,7 +29,7 @@ import { REPORTS_COPY } from '../reports-copy';
         }
       </csh-page-state>
       @if (navigate && caps.canReadReservations()) {
-        <a class="csh-reports-link" role="link" tabindex="0" (click)="leave()" (keydown.enter)="leave()">{{ t.reservations }}</a>
+        <button type="button" class="csh-reports-link" (click)="leave()">{{ t.reservations }}</button>
       }
     </article>
   `,
