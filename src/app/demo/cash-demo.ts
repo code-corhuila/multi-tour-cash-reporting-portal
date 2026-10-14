@@ -1,9 +1,12 @@
 import { Provider, inject } from '@angular/core';
+import { CashClosure, CashClosuresSource } from '../cash/data/cash-closures-source';
+import { CashHistoryLinkComponent, CashMonthlyLinkComponent } from '../cash/components/cash-consultation-links.component';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
 import { CashDay, CashDayMetrics, CashDaySource, CashDayStatus, CashMovement, CashOrigin } from '../cash/data/cash-day-source';
 import { CashMovementResult, CashMovementWriter, NewCashMovement } from '../cash/data/cash-movement-writer';
 import { Clock } from '../shared/clock';
 import { PortalCapabilities } from '../shared/portal-capabilities';
+import { CASH_CONSULTATION_LINKS } from '../shared/portal-slots';
 import { demoFixture } from './demo-fixtures';
 
 /** The demo day of 001- (01 sep 2026, the mockup's demo clock): one base, one income and one refund by transfer, one cash expense (spec section 6). */
@@ -24,6 +27,20 @@ const LEDGER: readonly LedgerEntry[] = [
   entry('cm-4', '15:30', 'INCOME', 'Pago reserva #RES-1903', 50000000, 'TRANSFER', false),
 ];
 
+/** The closures before the demo day, newest first (spec 001- section 6): 31 ago with an operational opening, 30 ago closed by itself over a validated transfer. */
+const closed = (id: string, businessDate: string, movement: CashMovement, over: Partial<CashClosure>): CashClosure => ({
+  cashClosureId: id, businessDate, closingMode: 'MANUAL', origin: 'OPERATIONAL_OPENING', reopened: false, openingBase: BASE, income: movement.amount, operationalPayments: 0,
+  expenses: 0, refunds: 0, total: BASE + movement.amount, expectedCash: BASE + movement.amount, closedBy: `${WHO} (Administrador del tenant)`,
+  closedAt: `${businessDate}T18:00:00`, reopenings: [], corrections: [], movements: [movement], ...over,
+});
+const income = (id: string, date: string, time: string, concept: string, amount: number, paymentMedium: Medium): CashMovement =>
+  ({ cashMovementId: id, movementType: 'INCOME', concept, amount, paymentMedium, afterClosing: false, registeredAt: `${date}T${time}:00`, registeredBy: WHO });
+const PREVIOUS: readonly CashClosure[] = [
+  closed('cl-0831', '2026-08-31', income('cm-0831', '2026-08-31', '10:15', 'Cobro en efectivo de reservas', 80000000, 'CASH'), {}),
+  closed('cl-0830', '2026-08-30', income('cm-0830', '2026-08-30', '10:30', 'Pago reserva #RES-1899', 20000000, 'TRANSFER'), {
+    closingMode: 'AUTOMATIC', origin: 'AUTOMATIC_CREATION', openingBase: 0, total: 20000000, expectedCash: null, closedBy: 'Cierre automático (Multitour)', closedAt: '2026-08-30T23:59:00' }),
+];
+
 const magnitude = (movements: readonly CashMovement[], type: Type) =>
   movements.filter((m) => m.movementType === type).reduce((total, m) => total + Math.abs(m.amount), 0);
 const net = (movements: readonly CashMovement[], medium: Medium) =>
@@ -41,7 +58,7 @@ function resolve(movements: readonly CashMovement[], base: number, withCash: boo
   };
 }
 
-interface State { status: CashDayStatus; origin: CashOrigin | null; base: number; openedBy: string | null; movements: CashMovement[] }
+interface State { status: CashDayStatus; origin: CashOrigin | null; base: number; openedBy: string | null; movements: CashMovement[]; closing?: { at: string; by: string } }
 interface Environment { readonly now: () => number; readonly actor: () => string }
 
 /**
@@ -95,8 +112,27 @@ export class DemoCashStore {
       if (state.status === 'CLOSED') { return { kind: 'refused', reason: 'ALREADY_CLOSED' }; }
       if (state.status !== 'OPEN_OPERATIVE') { return { kind: 'refused', reason: 'NOT_OPERATIVE' }; }
       state.status = 'CLOSED';
+      state.closing = { at: this.stamp(), by: this.env.actor() };
       return { kind: 'closed', expectedCash: this.read().metrics.expectedCash ?? 0 };
     });
+  }
+
+  /** The closures newest first: the day of the page once it is closed (a second close creates none), then the seeded ones. */
+  closures(): CashClosure[] {
+    const state = this.current();
+    if (state.status !== 'CLOSED') { return [...PREVIOUS]; }
+    const { metrics } = this.read();
+    const closing = state.closing ?? { at: `${BUSINESS_DATE}T18:00:00`, by: `${WHO} (Administrador del tenant)` };
+    return [{
+      cashClosureId: `cl-${BUSINESS_DATE}`, businessDate: BUSINESS_DATE, closingMode: 'MANUAL', origin: state.origin ?? 'OPERATIONAL_OPENING', reopened: false, openingBase: state.base,
+      income: metrics.income, operationalPayments: metrics.operationalPayments, expenses: metrics.expenses, refunds: metrics.refunds, total: metrics.total, expectedCash: metrics.expectedCash,
+      closedBy: closing.by, closedAt: closing.at, reopenings: [], corrections: [], movements: [...state.movements],
+    }, ...PREVIOUS];
+  }
+
+  private stamp(): string {
+    const at = new Date(this.env.now());
+    return `${BUSINESS_DATE}T${String(at.getHours()).padStart(2, '0')}:${String(at.getMinutes()).padStart(2, '0')}:00`;
   }
 
   private once<T>(key: string, apply: () => T): T {
@@ -110,6 +146,15 @@ export class DemoCashDaySource extends CashDaySource {
   override today(): Promise<CashDay> {
     if (demoFixture('failing-cash-source')) { return Promise.reject(new Error('failing-cash-source')); }
     return Promise.resolve(this.store.read());
+  }
+}
+
+/** DEMO: the closures of the same store; the fixtures failing-closures and empty-closures are read here only. */
+export class DemoCashClosuresSource extends CashClosuresSource {
+  constructor(private readonly store: DemoCashStore = new DemoCashStore()) { super(); }
+  override list(): Promise<readonly CashClosure[]> {
+    if (demoFixture('failing-closures')) { return Promise.reject(new Error('failing-closures')); }
+    return Promise.resolve(demoFixture('empty-closures') ? [] : this.store.closures());
   }
 }
 
@@ -135,6 +180,9 @@ export function cashDemoProviders(): Provider[] {
       },
     },
     { provide: CashDaySource, useFactory: () => new DemoCashDaySource(inject(DemoCashStore)) },
+    { provide: CashClosuresSource, useFactory: () => new DemoCashClosuresSource(inject(DemoCashStore)) },
+    { provide: CASH_CONSULTATION_LINKS, useValue: CashHistoryLinkComponent, multi: true },
+    { provide: CASH_CONSULTATION_LINKS, useValue: CashMonthlyLinkComponent, multi: true },
     { provide: CashMovementWriter, useFactory: () => new DemoCashMovementWriter(inject(DemoCashStore)) },
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
   ];

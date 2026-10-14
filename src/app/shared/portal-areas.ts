@@ -1,7 +1,12 @@
 import { AbstractType, InjectionToken, Injector, Type } from '@angular/core';
 import { CASH_COPY } from '../cash/cash-copy';
+import { CashClosuresSource } from '../cash/data/cash-closures-source';
 import { CashDaySource } from '../cash/data/cash-day-source';
+import { MonthlyReportSource } from '../cash/data/monthly-report-source';
+import { CASH_CONSULTATION_COPY } from '../cash/cash-consultation-copy';
 import { CashDayPageComponent } from '../cash/pages/cash-day-page.component';
+import { CashHistoryPageComponent } from '../cash/pages/cash-history-page.component';
+import { CashMonthlyPageComponent } from '../cash/pages/cash-monthly-page.component';
 import { DailyDashboardSource } from '../reports/data/daily-dashboard-source';
 import { ReportsPageComponent } from '../reports/pages/reports-page.component';
 import { REPORTS_COPY } from '../reports/reports-copy';
@@ -28,6 +33,11 @@ export const PORTAL_AREAS: readonly PortalArea[] = Object.freeze([
   // HU-CSH-001: offered only where the build supplies the day of the cash and the role may read it.
   { key: 'cash', label: CASH_COPY.areaLabel, component: CashDayPageComponent,
     isAvailable: (injector: Injector) => has(injector, CashDaySource) && injector.get(PortalCapabilities).canReadCash() },
+  // HU-CSH-001 / HU-CSH-003: the read-only sub-screens of Caja (menu: false, 'cash' stays active), offered with their ports and to who reads the cash.
+  { key: 'cash-history', label: CASH_CONSULTATION_COPY.history.title, component: CashHistoryPageComponent, menu: false, parent: 'cash',
+    isAvailable: (injector: Injector) => has(injector, CashClosuresSource) && injector.get(PortalCapabilities).canReadCash() },
+  { key: 'cash-monthly', label: CASH_CONSULTATION_COPY.monthly.title, component: CashMonthlyPageComponent, menu: false, parent: 'cash',
+    isAvailable: (injector: Injector) => has(injector, MonthlyReportSource) && injector.get(PortalCapabilities).canReadCash() },
   // HU-CSH-002: offered only where the build supplies the dashboard port and the role may read reports.
   { key: 'reports', label: REPORTS_COPY.areaLabel, component: ReportsPageComponent,
     isAvailable: (injector: Injector) => has(injector, DailyDashboardSource) && injector.get(PortalCapabilities).canReadReports() },
