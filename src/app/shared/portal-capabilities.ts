@@ -16,16 +16,12 @@ interface Row {
   readonly operateCash: 'always' | 'if-granted' | 'never';
   /** HU-CSH-001 AC9: RBAC row Change the cash base. */
   readonly changeBase: boolean;
-  /** HU-CSH-002: RBAC row Daily dashboard, read only (the Contador reads, DP-DB5). */
-  readonly readReports: boolean;
-  /** HU-FRT-001 FM-04: RBAC row Consult reservations of the commercial portal, the target of "Ir a reservas". */
-  readonly readReservations: boolean;
 }
 
-const NONE: Row = { label: '', readCash: false, operateCash: 'never', changeBase: false, readReports: false, readReservations: false };
-const READER: Row = { ...NONE, readCash: true, readReports: true, readReservations: true };
+const NONE: Row = { label: '', readCash: false, operateCash: 'never', changeBase: false };
+const READER: Row = { ...NONE, readCash: true };
 const TABLE: Readonly<Record<ActorRole, Row>> = Object.freeze({
-  TENANT_ADMINISTRATOR: { label: 'Administrador del tenant', readCash: true, operateCash: 'always', changeBase: true, readReports: true, readReservations: true },
+  TENANT_ADMINISTRATOR: { label: 'Administrador del tenant', readCash: true, operateCash: 'always', changeBase: true },
   OPERATIONAL_COLLABORATOR: { ...READER, label: 'Colaborador operativo', operateCash: 'if-granted' },
   MANAGER: { ...READER, label: 'Gerente' },
   ACCOUNTANT: { ...READER, label: 'Contador' },
@@ -64,9 +60,5 @@ export class PortalCapabilities {
   canChangeBase(): boolean { return this.row.changeBase; }
   /** DP-CJ3: the correction after a closing is the reopening record, so it follows the operate row. */
   canCorrectClosure(): boolean { return this.canOperateCash(); }
-  /** HU-CSH-002: the area Reportes and its dashboard; the screen has no action to ask for. */
-  canReadReports(): boolean { return this.row.readReports; }
-  /** The target of "Ir a reservas" is the commercial portal: its row is read by the five internal roles. */
-  canReadReservations(): boolean { return this.row.readReservations; }
   roleLabel(): string { return this.row.label; }
 }
