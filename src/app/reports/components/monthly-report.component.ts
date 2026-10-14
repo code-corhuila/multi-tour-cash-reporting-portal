@@ -23,7 +23,7 @@ import { REPORTS_COPY } from '../reports-copy';
         }
       </csh-page-state>
       @if (navigation?.has('cash')) {
-        <a class="csh-reports-link" role="link" tabindex="0" (click)="toCash()" (keydown.enter)="toCash()">{{ t.cash }}</a>
+        <button type="button" class="csh-reports-link" (click)="toCash()">{{ t.cash }}</button>
       }
     </article>
   `,
