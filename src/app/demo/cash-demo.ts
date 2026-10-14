@@ -31,7 +31,7 @@ const LEDGER: readonly LedgerEntry[] = [
 const closed = (id: string, businessDate: string, movement: CashMovement, over: Partial<CashClosure>): CashClosure => ({
   cashClosureId: id, businessDate, closingMode: 'MANUAL', origin: 'OPERATIONAL_OPENING', reopened: false, openingBase: BASE, income: movement.amount, operationalPayments: 0,
   expenses: 0, refunds: 0, total: BASE + movement.amount, expectedCash: BASE + movement.amount, closedBy: `${WHO} (Administrador del tenant)`,
-  closedAt: `${businessDate}T18:00:00`, reopenings: [], corrections: [], movements: [movement], ...over,
+  closedAt: `${businessDate}T18:00:00`, reopenings: [], corrections: [], movements: [movement], nonCashMovements: movement.paymentMedium === 'TRANSFER' ? 1 : 0, ...over,
 });
 const income = (id: string, date: string, time: string, concept: string, amount: number, paymentMedium: Medium): CashMovement =>
   ({ cashMovementId: id, movementType: 'INCOME', concept, amount, paymentMedium, afterClosing: false, registeredAt: `${date}T${time}:00`, registeredBy: WHO });
@@ -126,7 +126,7 @@ export class DemoCashStore {
     return [{
       cashClosureId: `cl-${BUSINESS_DATE}`, businessDate: BUSINESS_DATE, closingMode: 'MANUAL', origin: state.origin ?? 'OPERATIONAL_OPENING', reopened: false, openingBase: state.base,
       income: metrics.income, operationalPayments: metrics.operationalPayments, expenses: metrics.expenses, refunds: metrics.refunds, total: metrics.total, expectedCash: metrics.expectedCash,
-      closedBy: closing.by, closedAt: closing.at, reopenings: [], corrections: [], movements: [...state.movements],
+      closedBy: closing.by, closedAt: closing.at, reopenings: [], corrections: [], movements: [...state.movements], nonCashMovements: state.movements.some((m) => m.paymentMedium === 'TRANSFER') ? 1 : 0,
     }, ...PREVIOUS];
   }
 
