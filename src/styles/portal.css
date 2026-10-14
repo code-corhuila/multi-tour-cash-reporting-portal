@@ -110,9 +110,10 @@
 .csh-root .csh-history-badge { padding: 4px 12px; border-radius: var(--csh-radius-pill); background: var(--csh-success-soft); color: var(--csh-success); font-size: 0.74rem; font-weight: 700; }
 .csh-root .csh-history-badge-open { background: var(--csh-warning-soft); color: var(--csh-warning); }
 .csh-root .csh-history-lines { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 28px; margin: 0; }
-.csh-root .csh-history-lines div { display: grid; gap: 2px; padding-left: 14px; border-left: 2px solid var(--csh-line-strong); }
+.csh-root .csh-history-lines div { display: grid; align-content: start; gap: 2px; padding-left: 14px; border-left: 2px solid var(--csh-line-strong); }
 .csh-root .csh-history-lines dt { color: var(--csh-soft); font-size: 0.76rem; font-weight: 600; }
 .csh-root .csh-history-lines dd { margin: 0; font-size: 0.9rem; font-weight: 700; }
+.csh-root .csh-history-copy { margin: 0 0 20px; color: var(--csh-soft); font-size: 0.92rem; line-height: 1.7; }
 .csh-root .csh-history-note { margin: 0; color: var(--csh-soft); font-size: 0.82rem; line-height: 1.5; }
 .csh-root .csh-cash-table-wrap { overflow-x: auto; }
 .csh-root .csh-cash-table { width: 100%; min-width: 640px; border-collapse: collapse; text-align: left; }
