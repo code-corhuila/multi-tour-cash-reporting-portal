@@ -8,6 +8,7 @@
   --csh-cta: #e9a23b; --csh-cta-strong: #c07f22;
   --csh-success: #17685f; --csh-success-soft: #ddf0e7; --csh-warning: #a4621e; --csh-warning-soft: #fff1dc;
   --csh-error: #b34a4a; --csh-error-soft: #fbe9e9; --csh-info: #2d6480; --csh-info-soft: #e3eef5;
+  --csh-hero-from: #e9f4ed; --csh-hero-line: #d5e4dc; --csh-card-line: #dce5df; --csh-metric: #14776f;
   --csh-shadow: 0 12px 28px rgba(23, 37, 43, 0.07); --csh-focus: 0 0 0 3px rgba(31, 77, 61, 0.35);
   --csh-radius-panel: 16px; --csh-radius-card: 14px; --csh-radius-control: 10px; --csh-radius-pill: 999px;
   display: block; min-width: 0; background: var(--csh-bg); color: var(--csh-text);
@@ -33,6 +34,33 @@
 /* The four states (plan D-07). */
 .csh-root .csh-state-note { margin: 0; padding: 18px 0; color: var(--csh-soft); }
 .csh-root .csh-state-error { margin: 0 0 12px; padding: 12px 14px; border-radius: var(--csh-radius-control); background: var(--csh-error-soft); color: var(--csh-error); font-weight: 700; }
+
+/* HU-CSH-002, screen 16 (admin-reportes.html): header, hero and the dashboard article, in the column of the portal. */
+.csh-root .csh-reports-header { display: grid; gap: 8px; padding-bottom: 16px; margin-bottom: 22px; border-bottom: 1px solid var(--csh-line); }
+.csh-root .csh-reports-eyebrow { margin: 0; color: var(--csh-soft); font-size: 0.72rem; font-weight: 800; letter-spacing: 0.09em; text-transform: uppercase; }
+.csh-root .csh-reports-header .csh-reports-eyebrow { color: var(--csh-accent-strong); letter-spacing: 0.08em; }
+.csh-root .csh-reports-title { margin: 0; font-size: clamp(1.35rem, 1.15rem + 0.6vw, 1.7rem); font-weight: 800; letter-spacing: -0.02em; line-height: 1.15; }
+.csh-root .csh-reports-hero { display: grid; grid-template-columns: minmax(0, 1.45fr) minmax(230px, 0.7fr); gap: 28px; margin-bottom: 22px; padding: 25px 28px; border: 1px solid var(--csh-hero-line); border-radius: var(--csh-radius-panel); background: linear-gradient(135deg, var(--csh-hero-from), var(--csh-surface) 76%); }
+.csh-root .csh-reports-hero h2 { max-width: 740px; margin: 4px 0 0; font-size: clamp(1.25rem, 1.1rem + 0.45vw, 1.58rem); letter-spacing: -0.045em; line-height: 1.25; }
+.csh-root .csh-reports-hero > p { margin: 0; color: var(--csh-soft); font-size: 0.92rem; line-height: 1.6; }
+.csh-root .csh-reports-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; margin-top: 22px; }
+.csh-root .csh-reports-card { padding: 24px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-panel); background: var(--csh-surface); box-shadow: var(--csh-shadow); }
+.csh-root .csh-reports-card-title { margin: 4px 0 18px; font-size: 1.16rem; letter-spacing: -0.045em; }
+.csh-root .csh-reports-metrics { display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 14px; margin: 0; }
+.csh-root .csh-reports-metric { display: grid; grid-column: span 2; align-content: start; gap: 8px; min-height: 145px; padding: 20px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-panel); background: var(--csh-surface); }
+.csh-root .csh-reports-metric:nth-child(n+4) { grid-column: span 3; }
+.csh-root .csh-reports-metric dt { color: var(--csh-soft); font-size: 0.8rem; font-weight: 700; }
+.csh-root .csh-reports-metric dd { margin: 0; }
+.csh-root .csh-reports-value { color: var(--csh-metric); font-size: clamp(1.45rem, 1rem + 1.2vw, 2.2rem); font-weight: 800; letter-spacing: -0.07em; line-height: 1; }
+.csh-root .csh-reports-note { color: var(--csh-soft); font-size: 0.77rem; line-height: 1.42; }
+.csh-root .csh-reports-link { display: inline-block; margin-top: 18px; color: var(--csh-accent-strong); font-size: 0.82rem; font-weight: 800; cursor: pointer; }
+@media (max-width: 860px) {
+  .csh-root .csh-reports-hero, .csh-root .csh-reports-grid { grid-template-columns: 1fr; }
+}
+@media (max-width: 620px) {
+  .csh-root .csh-reports-metrics { grid-template-columns: 1fr; }
+  .csh-root .csh-reports-metric, .csh-root .csh-reports-metric:nth-child(n+4) { grid-column: auto; }
+}
 
 @media (max-width: 860px) {
   .csh-root .csh-shell { grid-template-columns: 1fr; }
