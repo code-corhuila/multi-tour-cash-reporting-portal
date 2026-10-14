@@ -1,4 +1,7 @@
 import { AbstractType, InjectionToken, Injector, Type } from '@angular/core';
+import { CASH_COPY } from '../cash/cash-copy';
+import { CashDaySource } from '../cash/data/cash-day-source';
+import { CashDayPageComponent } from '../cash/pages/cash-day-page.component';
 import { DailyDashboardSource } from '../reports/data/daily-dashboard-source';
 import { ReportsPageComponent } from '../reports/pages/reports-page.component';
 import { REPORTS_COPY } from '../reports/reports-copy';
@@ -22,6 +25,9 @@ export const has = (injector: Injector, ...ports: readonly AbstractType<unknown>
 
 /** The sidebar, in order: a story appends ONE entry and never edits the shell. */
 export const PORTAL_AREAS: readonly PortalArea[] = Object.freeze([
+  // HU-CSH-001: offered only where the build supplies the day of the cash and the role may read it.
+  { key: 'cash', label: CASH_COPY.areaLabel, component: CashDayPageComponent,
+    isAvailable: (injector: Injector) => has(injector, CashDaySource) && injector.get(PortalCapabilities).canReadCash() },
   // HU-CSH-002: offered only where the build supplies the dashboard port and the role may read reports.
   { key: 'reports', label: REPORTS_COPY.areaLabel, component: ReportsPageComponent,
     isAvailable: (injector: Injector) => has(injector, DailyDashboardSource) && injector.get(PortalCapabilities).canReadReports() },
