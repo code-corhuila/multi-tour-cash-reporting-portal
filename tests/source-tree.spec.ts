@@ -47,6 +47,8 @@ const SPECIFIED_TREE = [
   'src/app/shared/portal-capabilities.ts',
   'src/app/shared/portal-navigation.ts',
   'src/app/shared/portal-shell.component.ts',
+  'src/app/shared/shell-copy.ts',
+  'src/app/shared/monthly-period.ts',
   'src/app/shared/portal-slots.ts',
   'src/app/shell-contract.ts',
   'src/app/sources.demo.ts',
