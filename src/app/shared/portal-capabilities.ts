@@ -20,16 +20,18 @@ interface Row {
   readonly readReports: boolean;
   /** HU-FRT-001 FM-04: RBAC row Consult reservations of the commercial portal, the target of "Ir a reservas". */
   readonly readReservations: boolean;
+  /** The optional roles that read and export but register nothing (PDR section 9): they see the note of screen 16. */
+  readonly queryOnly: boolean;
 }
 
-const NONE: Row = { label: '', readCash: false, operateCash: 'never', changeBase: false, readReports: false, readReservations: false };
-const READER: Row = { ...NONE, readCash: true, readReports: true, readReservations: true };
+const NONE: Row = { label: '', readCash: false, operateCash: 'never', changeBase: false, readReports: false, readReservations: false, queryOnly: false };
+const READER: Row = { ...NONE, readCash: true, readReports: true, readReservations: true, queryOnly: false };
 const TABLE: Readonly<Record<ActorRole, Row>> = Object.freeze({
-  TENANT_ADMINISTRATOR: { label: 'Administrador del tenant', readCash: true, operateCash: 'always', changeBase: true, readReports: true, readReservations: true },
+  TENANT_ADMINISTRATOR: { label: 'Administrador del tenant', readCash: true, operateCash: 'always', changeBase: true, readReports: true, readReservations: true, queryOnly: false },
   OPERATIONAL_COLLABORATOR: { ...READER, label: 'Colaborador operativo', operateCash: 'if-granted' },
-  MANAGER: { ...READER, label: 'Gerente' },
-  ACCOUNTANT: { ...READER, label: 'Contador' },
-  ANALYST: { ...READER, label: 'Analista' },
+  MANAGER: { ...READER, label: 'Gerente', queryOnly: true },
+  ACCOUNTANT: { ...READER, label: 'Contador', queryOnly: true },
+  ANALYST: { ...READER, label: 'Analista', queryOnly: true },
   DENIED: NONE,
 });
 
@@ -68,5 +70,7 @@ export class PortalCapabilities {
   canReadReports(): boolean { return this.row.readReports; }
   /** The target of "Ir a reservas" is the commercial portal: its row is read by the five internal roles. */
   canReadReservations(): boolean { return this.row.readReservations; }
+  /** Gerente, Contador and Analista: read and export, nothing registered or changed. */
+  isQueryOnly(): boolean { return this.row.queryOnly; }
   roleLabel(): string { return this.row.label; }
 }

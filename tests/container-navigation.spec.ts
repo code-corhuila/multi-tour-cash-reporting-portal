@@ -46,7 +46,7 @@ describe('irAReservasIsDrawnOnlyWhenTheContainerOffersItAndTheRoleMayUseTheTarge
     const fixture = TestBed.createComponent(ReportsPageComponent);
     for (let i = 0; i < 3; i += 1) { fixture.detectChanges(); await fixture.whenStable(); }
     const host: HTMLElement = fixture.nativeElement;
-    return { host, link: () => Array.from(host.querySelectorAll<HTMLElement>('[role="link"]')).find((l) => flat(l.textContent) === 'Ir a reservas') };
+    return { host, link: () => Array.from(host.querySelectorAll<HTMLElement>('button.csh-reports-link')).find((l) => flat(l.textContent) === 'Ir a reservas') };
   }
 
   it.each(INTERNAL)('asks the container for the area reservations of the commercial portal as %s', async (role) => {
@@ -62,7 +62,7 @@ describe('irAReservasIsDrawnOnlyWhenTheContainerOffersItAndTheRoleMayUseTheTarge
   });
 
   it('is not drawn when the capabilities say the person cannot consult reservations', async () => {
-    const denied = { canReadReports: () => true, canReadReservations: () => false };
+    const denied = { canReadReports: () => true, canReadReservations: () => false, isQueryOnly: () => false };
     const { link } = await render([{ provide: PortalCapabilities, useValue: denied }, { provide: CONTAINER_NAVIGATION, useValue: vi.fn() }]);
     expect(link()).toBeUndefined();
   });
