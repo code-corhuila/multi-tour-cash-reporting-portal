@@ -62,7 +62,7 @@ describe('irAReservasIsDrawnOnlyWhenTheContainerOffersItAndTheRoleMayUseTheTarge
   });
 
   it('is not drawn when the capabilities say the person cannot consult reservations', async () => {
-    const denied = { canReadReports: () => true, canReadReservations: () => false };
+    const denied = { canReadReports: () => true, canReadReservations: () => false, isQueryOnly: () => false };
     const { link } = await render([{ provide: PortalCapabilities, useValue: denied }, { provide: CONTAINER_NAVIGATION, useValue: vi.fn() }]);
     expect(link()).toBeUndefined();
   });

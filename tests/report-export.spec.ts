@@ -6,8 +6,11 @@ import { DailyDashboard, DailyDashboardSource } from '../src/app/reports/data/da
 import { PeriodSummary, PeriodSummarySource } from '../src/app/reports/data/period-summary-source';
 import { BrowserReportExporter, ReportExporter } from '../src/app/reports/data/report-exporter';
 import { ReportData, ReportFile, buildReportCsv, buildReportFile, buildReportPdf } from '../src/app/reports/data/report-files';
+import { MonthlyReportComponent } from '../src/app/reports/components/monthly-report.component';
+import { PeriodSummaryComponent } from '../src/app/reports/components/period-summary.component';
 import { ReportsPageComponent } from '../src/app/reports/pages/reports-page.component';
 import { PortalActor } from '../src/app/shared/portal-capabilities';
+import { REPORTS_MONTHLY_BLOCKS } from '../src/app/shared/portal-slots';
 
 // HU-CSH-003 AC-RM.7 (spec 003-, task T-05): "Exportar CSV" and "Exportar PDF" on screen 16 hold what the screen shows.
 const peso = (n: number) => n * 100;
@@ -104,7 +107,8 @@ async function settle(fixture: { detectChanges(): void; whenStable(): Promise<un
 async function render(roles: string[], extra: Provider[] = []) {
   const day = new DayDouble(); const summary = new SummaryDouble(); const monthly = new MonthlyDouble(); const exporter = new ExporterDouble();
   TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(roles) }, { provide: DailyDashboardSource, useValue: day },
-    { provide: PeriodSummarySource, useValue: summary }, { provide: MonthlyReportSource, useValue: monthly }, { provide: ReportExporter, useValue: exporter }, ...extra] });
+    { provide: PeriodSummarySource, useValue: summary }, { provide: MonthlyReportSource, useValue: monthly }, { provide: ReportExporter, useValue: exporter },
+    { provide: REPORTS_MONTHLY_BLOCKS, useValue: PeriodSummaryComponent, multi: true }, { provide: REPORTS_MONTHLY_BLOCKS, useValue: MonthlyReportComponent, multi: true }, ...extra] });
   const fixture = TestBed.createComponent(ReportsPageComponent);
   await settle(fixture);
   const host: HTMLElement = fixture.nativeElement;
@@ -167,7 +171,7 @@ describe('exportButtonsFollowTheReportAndTheRole', () => {
     }
   });
 
-  it('draws no buttons when the portal has no summary or monthly source (the report is not there)', async () => {
+  it('draws no buttons when the portal contributes no summary or monthly article (the report is not there)', async () => {
     TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(['MANAGER']) }, { provide: DailyDashboardSource, useValue: new DayDouble() }] });
     const fixture = TestBed.createComponent(ReportsPageComponent);
     await settle(fixture);

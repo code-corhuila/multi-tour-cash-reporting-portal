@@ -1,7 +1,8 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject } from '@angular/core';
 import { formatCop } from '../../shared/format';
 import { PageLoad, PageStateComponent } from '../../shared/page-state';
 import { PeriodSummary, PeriodSummarySource } from '../data/period-summary-source';
+import { ReportBasis } from '../data/report-basis';
 import { REPORTS_COPY } from '../reports-copy';
 
 /** The summary row of screen 16: four values of the period as the source gives them, no action (RN-RM4, RN-RM5). */
@@ -31,10 +32,12 @@ import { REPORTS_COPY } from '../reports-copy';
 export class PeriodSummaryComponent {
   protected readonly t = REPORTS_COPY;
   private readonly source = inject(PeriodSummarySource);
+  private readonly basis = inject(ReportBasis);
   protected readonly load = new PageLoad<PeriodSummary>();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.load.stop());
+    effect(() => { const s = this.load.state(); this.basis.summary.set(s.kind === 'data' ? s.items[0] : undefined); });
     this.reload();
   }
 
