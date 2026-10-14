@@ -255,7 +255,7 @@ describe('reportArticleShowsTheSamePeriodsAsTheConsolidation', () => {
 });
 
 describe('irACajaOpensTheCash', () => {
-  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('[role="link"]')).find((l) => l.textContent?.trim() === 'Ir a caja');
+  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('button.csh-reports-link')).find((l) => l.textContent?.trim() === 'Ir a caja');
   const withCash = [{ provide: PORTAL_AREA_LIST, useValue: [...PORTAL_AREAS, { key: 'cash', label: 'Caja', component: FakeCash }] }];
 
   it('opens the area Caja of this portal by click and by Enter', async () => {

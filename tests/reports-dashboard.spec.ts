@@ -225,7 +225,7 @@ describe('aNewerLoadReplacesAnOlderOne', () => {
 });
 
 describe('irAReservasAsksTheContainerToOpenReservationsOrIsNotDrawn', () => {
-  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('[role="link"]')).find((l) => l.textContent?.trim() === 'Ir a reservas');
+  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('button.csh-reports-link')).find((l) => l.textContent?.trim() === 'Ir a reservas');
 
   it('asks the container to open Reservas of the commercial portal, by click and by Enter', async () => {
     const navigate = vi.fn();
