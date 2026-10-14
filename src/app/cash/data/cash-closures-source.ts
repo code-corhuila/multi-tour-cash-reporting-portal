@@ -27,8 +27,6 @@ export interface CashClosure {
   readonly reopenings: readonly CashReopening[];
   readonly corrections: readonly CashCorrection[];
   readonly movements: readonly CashMovement[];
-  /** How many of `movements` were paid by transfer: reconciled apart, they never change the expected cash (RN-CJ10). */
-  readonly nonCashMovements: number;
 }
 
 /** Plan D-03: read only and with no argument; newest day first, the automatic closings included. The session decides the tenant. */

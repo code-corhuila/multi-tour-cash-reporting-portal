@@ -19,7 +19,7 @@ import { MonthlyPeriod, MonthlyReportSource } from '../data/monthly-report-sourc
         </div>
         <button type="button" (click)="navigation.open('cash')">{{ back }}</button>
       </header>
-      <p class="csh-history-copy">{{ t.note }}</p>
+      <p class="csh-cash-access-note">{{ t.note }}</p>
       <csh-page-state [state]="load.state()" [emptyText]="t.empty">
         @let s = load.state();
         @if (s.kind === 'data') {

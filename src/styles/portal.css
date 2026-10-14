@@ -101,6 +101,19 @@
 .csh-root .csh-cash-panel { margin-top: 22px; padding: 25px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-panel); background: var(--csh-surface); box-shadow: var(--csh-shadow); }
 .csh-root .csh-cash-panel h2 { margin: 4px 0 20px; font-size: 1.16rem; font-weight: 700; letter-spacing: -0.03em; }
 .csh-root .csh-cash-links { display: flex; flex-wrap: wrap; gap: 10px; }
+/* HU-CSH-001 / HU-CSH-003, sub-screens of screen 14: the history of closures and the monthly consolidation. */
+.csh-root .csh-history-header { grid-template-columns: minmax(0, 1fr) auto; align-items: end; gap: 12px; }
+.csh-root .csh-history-closure, .csh-root .csh-history-period { display: grid; gap: 14px; }
+.csh-root .csh-history-closure .csh-cash-eyebrow { margin-top: 6px; }
+.csh-root .csh-history-head { display: flex; flex-wrap: wrap; align-items: flex-start; justify-content: space-between; gap: 12px; }
+.csh-root .csh-history-closure h2, .csh-root .csh-history-head .csh-cash-eyebrow { margin: 0; }
+.csh-root .csh-history-badge { padding: 4px 12px; border-radius: var(--csh-radius-pill); background: var(--csh-success-soft); color: var(--csh-success); font-size: 0.74rem; font-weight: 700; }
+.csh-root .csh-history-badge-open { background: var(--csh-warning-soft); color: var(--csh-warning); }
+.csh-root .csh-history-lines { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 14px 28px; margin: 0; }
+.csh-root .csh-history-lines div { display: grid; gap: 2px; padding-left: 14px; border-left: 2px solid var(--csh-line-strong); }
+.csh-root .csh-history-lines dt { color: var(--csh-soft); font-size: 0.76rem; font-weight: 600; }
+.csh-root .csh-history-lines dd { margin: 0; font-size: 0.9rem; font-weight: 700; }
+.csh-root .csh-history-note { margin: 0; color: var(--csh-soft); font-size: 0.82rem; line-height: 1.5; }
 .csh-root .csh-cash-table-wrap { overflow-x: auto; }
 .csh-root .csh-cash-table { width: 100%; min-width: 640px; border-collapse: collapse; text-align: left; }
 .csh-root .csh-cash-table th { padding: 0 12px 12px; font-weight: 600; color: var(--csh-soft); font-size: 0.69rem; letter-spacing: 0.08em; text-transform: uppercase; }
