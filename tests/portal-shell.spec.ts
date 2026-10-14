@@ -58,16 +58,9 @@ describe('finalCustomerAndUnknownRoleGetNoCashArea', () => {
       expect(navigation.open('cash')).toBe(false);
     });
 
-  it('keeps a frozen registry; each story appends one entry (HU-CSH-001: cash and its history, HU-CSH-003: the consolidation, HU-CSH-002: reports)', () => {
-    expect(PORTAL_AREAS.map((area) => area.key)).toEqual(['cash', 'cash-history', 'cash-monthly', 'reports']);
+  it('starts with an empty frozen registry: no area is offered before its pull request', () => {
+    expect(PORTAL_AREAS).toEqual([]);
     expect(Object.isFrozen(PORTAL_AREAS)).toBe(true);
-  });
-});
-
-describe('portalShellCopy', () => {
-  it('keeps the brand and the navigation name in shell-copy.ts', async () => {
-    const { SHELL_COPY } = await import('../src/app/shared/shell-copy');
-    expect(SHELL_COPY).toEqual({ brand: 'MULTITOUR', navigation: 'Administración del operador' });
   });
 });
 
@@ -147,8 +140,8 @@ describe('mountHandsTheSessionToTheShell', () => {
 });
 
 describe('portalReadsNoAddress', () => {
-  it('never reads location or history, but the demo fixtures of src/app/demo: the container owns the URL (lesson 12)', () => {
-    const readers = listSourceFiles().filter((file) => file.endsWith('.ts') && !file.startsWith('src/app/demo/'))
+  it('never reads location or history: the container owns the URL (lesson 12)', () => {
+    const readers = listSourceFiles().filter((file) => file.endsWith('.ts'))
       .filter((file) => /\b(location|history\.(push|replace)State)\b/.test(withoutComments(readFileSync(file, 'utf8'))));
     expect(readers).toEqual([]);
   });
