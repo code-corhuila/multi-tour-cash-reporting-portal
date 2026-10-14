@@ -1,11 +1,22 @@
 import { describe, expect, it } from 'vitest';
 import { listSourceFiles } from './source-files';
 
-// The skeleton of plan D-01 (HU-CSH-001, pull request 1): the Annex H portal tree before any feature.
+// The skeleton of plan D-01 (HU-CSH-001, pull request 1) and the shared base of plan D-04 to D-08 (pull request 2):
+// the Annex H portal tree before any feature.
 // Adding or removing a file of src/ is a decision, so it must change this list in the same commit.
 const SPECIFIED_TREE = [
   'src/app/app.component.ts',
   'src/app/app.config.ts',
+  'src/app/shared/clock.ts',
+  'src/app/shared/focus.ts',
+  'src/app/shared/format.ts',
+  'src/app/shared/idempotency-keys.ts',
+  'src/app/shared/money.ts',
+  'src/app/shared/page-state.ts',
+  'src/app/shared/portal-areas.ts',
+  'src/app/shared/portal-capabilities.ts',
+  'src/app/shared/portal-navigation.ts',
+  'src/app/shared/portal-shell.component.ts',
   'src/app/shell-contract.ts',
   'src/app/sources.demo.ts',
   'src/app/sources.ts',
