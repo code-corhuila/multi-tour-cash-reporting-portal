@@ -9,6 +9,8 @@ export interface MountProps {
   session: { readonly roles: string[]; open(answer: unknown): void; close(): void };
   /** PROPUESTO for ADR-007 (as the commercial portal): parameters the container keeps across a remount. */
   initialParams?: Readonly<Record<string, string>>;
+  /** PROPUESTO for ADR-007 (DP-DB6): asks the container to open an area of another portal; absent, the links to it are not drawn. */
+  navigate?: (target: { readonly portal: string; readonly area: string }) => void;
 }
 
 export type PortalApiClient = MountProps['apiClient'];
