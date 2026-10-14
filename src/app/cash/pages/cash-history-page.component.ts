@@ -52,7 +52,7 @@ import { CashMovement } from '../data/cash-day-source';
                     <tr><td>{{ hour(m.registeredAt) }}</td><td>{{ types[m.movementType] }}</td><td>{{ m.concept }}</td><td>{{ medium(m) }}</td><td>{{ money(m.amount) }}</td></tr>
                   }</tbody>
                 </table></div>
-                @if (nonCash(closure); as n) { <p class="csh-history-note">{{ t.movements.nonCash(n) }}</p> }
+                @if (closure.nonCashMovements) { <p class="csh-history-note">{{ t.movements.nonCash(closure.nonCashMovements) }}</p> }
               }
               <p class="csh-cash-eyebrow">{{ t.corrections.title }}</p>
               @if (closure.corrections.length) {
@@ -107,6 +107,4 @@ export class CashHistoryPageComponent {
     const medium = CASH_COPY.mediums[movement.paymentMedium];
     return movement.afterClosing ? `${medium} · ${CASH_COPY.afterClosing}` : medium;
   }
-
-  protected nonCash(closure: CashClosure): number { return closure.movements.filter((m) => m.paymentMedium === 'TRANSFER').length; }
 }

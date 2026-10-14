@@ -25,7 +25,7 @@ const TODAY: CashDay = {
 const CLOSURE: CashClosure = {
   cashClosureId: 'cl-1', businessDate: '2026-08-31', closingMode: 'MANUAL', origin: 'OPERATIONAL_OPENING', reopened: false, openingBase: peso(300000),
   income: peso(800000), operationalPayments: 0, expenses: 0, refunds: 0, total: peso(1100000), expectedCash: peso(1100000),
-  closedBy: ADMIN, closedAt: '2026-08-31T18:00:00', reopenings: [], corrections: [], movements: [],
+  closedBy: ADMIN, closedAt: '2026-08-31T18:00:00', reopenings: [], corrections: [], movements: [], nonCashMovements: 0,
 };
 const AUTOMATIC: CashClosure = {
   ...CLOSURE, cashClosureId: 'cl-2', businessDate: '2026-08-30', closingMode: 'AUTOMATIC', origin: 'AUTOMATIC_CREATION', openingBase: 0, income: peso(200000),
@@ -150,7 +150,7 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
 
   it('draws reopenings, movements, corrections, the reopened badge and the late creation origin', async () => {
     const rich: CashClosure = {
-      ...CLOSURE, reopened: true, origin: 'AUTOMATIC_CREATION',
+      ...CLOSURE, reopened: true, origin: 'AUTOMATIC_CREATION', nonCashMovements: 1,
       reopenings: [{ reopenedAt: '2026-08-31T19:10:00', reopenedBy: ADMIN, reason: 'Falta registrar un gasto' }],
       corrections: [{ appliedAt: '2026-09-01T08:30:00', appliedBy: ADMIN, justification: 'Ajuste por error de digitación' }],
       movements: [
