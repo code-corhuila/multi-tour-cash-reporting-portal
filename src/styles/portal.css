@@ -108,3 +108,12 @@
 @media (max-width: 860px) {
   .csh-root .csh-cash-hero { grid-template-columns: 1fr; }
 }
+
+/* HU-CSH-003 AC-RM.7, screen 16: the export buttons in the header and the note of the read-only roles. */
+.csh-root .csh-reports-header { grid-template-columns: minmax(0, 1fr) auto; align-items: end; column-gap: 16px; }
+.csh-root .csh-reports-header-main { display: grid; gap: 8px; }
+.csh-root .csh-reports-actions { display: flex; flex-wrap: wrap; gap: 10px; }
+.csh-root .csh-reports-access-note { margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-control); background: var(--csh-hero-from); color: var(--csh-soft); font-size: 0.78rem; line-height: 1.45; }
+@media (max-width: 620px) {
+  .csh-root .csh-reports-header { grid-template-columns: 1fr; }
+}
