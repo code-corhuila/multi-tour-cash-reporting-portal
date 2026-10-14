@@ -77,9 +77,9 @@ const withClosures = (list: readonly CashClosure[]) => fakes(() => Promise.resol
 const demo = (): Provider[] => demoSources({} as never);
 
 /** [label, value] of each line of the panel that holds `heading`. */
-const lines = (host: HTMLElement, heading: string) => {
-  const panel = Array.from(host.querySelectorAll('section.csh-history-closure')).find((p) => flat(p.querySelector('h2')?.textContent) === heading)!;
-  return Object.fromEntries(Array.from(panel.querySelectorAll('dl > div')).map((row) => [flat(row.querySelector('dt')?.textContent), flat(row.querySelector('dd')?.textContent)]));
+const lines = (host: HTMLElement, heading: string): Record<string, string> => {
+  const panel = Array.from(host.querySelectorAll('section.csh-history-closure')).find((p) => flat(p.querySelector('.csh-cash-eyebrow')?.textContent) === heading)!;
+  return { Total: flat(panel.querySelector('h2')?.textContent).replace('Total: ', ''), ...Object.fromEntries(Array.from(panel.querySelectorAll('dl > div')).map((row) => [flat(row.querySelector('dt')?.textContent), flat(row.querySelector('dd')?.textContent)])) };
 };
 
 describe('cashAreasOfTheConsultation', () => {
@@ -127,7 +127,7 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
     expect(flat(host.querySelector('main .csh-cash-eyebrow')?.textContent)).toBe('Control diario');
     expect(active()).toBe('Caja');
     expect(text()).toContain('Todo cierre queda conservado sin borrarse, con sus aperturas, reaperturas y movimientos.');
-    expect(Array.from(host.querySelectorAll('section.csh-history-closure h2')).map((h) => flat(h.textContent))).toEqual(['Cierre 31 ago 2026', 'Cierre 30 ago 2026']);
+    expect(Array.from(host.querySelectorAll('section.csh-history-closure .csh-history-head .csh-cash-eyebrow')).map((h) => flat(h.textContent))).toEqual(['Cierre 31 ago 2026', 'Cierre 30 ago 2026']);
     expect(lines(host, 'Cierre 31 ago 2026')).toMatchObject({
       Total: '$1.100.000', Base: '$300.000', Ingresos: '$800.000', 'Pagos operacionales': '$0', Gastos: '$0', Devoluciones: '$0',
       'Efectivo esperado al cierre': '$1.100.000', 'Origen de la caja': 'Apertura operativa', 'Cerrado por': ADMIN, 'Fecha y hora de cierre': '31 ago 2026 · 18:00',
