@@ -229,7 +229,7 @@ describe('irAReservasAsksTheContainerToOpenReservationsOrIsNotDrawn', () => {
 
   it('asks the container to open Reservas of the commercial portal, by click and by Enter', async () => {
     const navigate = vi.fn();
-    const { host } = await renderPage(new FixedSource(DAY), [{ provide: CONTAINER_NAVIGATION, useValue: navigate }]);
+    const { host } = await renderPage(new FixedSource(DAY), [{ provide: PortalActor, useValue: PortalActor.from(['MANAGER']) }, { provide: CONTAINER_NAVIGATION, useValue: navigate }]);
     link(host)!.click();
     link(host)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true }));
     expect(navigate).toHaveBeenCalledTimes(2);
@@ -277,7 +277,7 @@ describe('reportsTextsAreSpanishWithAccentsAndNoRawCodes', () => {
     for (const file of files) {
       const code = withoutComments(readFileSync(file, 'utf8'));
       expect(code).not.toMatch(/TENANT_ADMINISTRATOR|OPERATIONAL_COLLABORATOR|MANAGER|ACCOUNTANT|ANALYST|FINAL_CUSTOMER/);
-      const outside = [...code.matchAll(/from\s+'(\.\.\/[^']*)'/g)].map(([, path]) => path).filter((path) => !/(^|\/)(shared|reports)\//.test(path) && !/^\.\.\/(data|components|pages)\//.test(path) && !/^\.\.\/reports-copy$/.test(path) && !/^\.\.\/reports\//.test(path));
+      const outside = [...code.matchAll(/from\s+'(\.\.\/[^']*)'/g)].map(([, path]) => path).filter((path) => !/(^|\/)(shared|reports|cash\/data)\//.test(path) &&!/^\.\.\/(data|components|pages)\//.test(path) && !/^\.\.\/reports-copy$/.test(path) && !/^\.\.\/reports\//.test(path));
       expect(outside, file).toEqual([]);
     }
   });

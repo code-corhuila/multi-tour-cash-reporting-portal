@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, inject, input } from '@angular/core';
 import { PageState, PageStateComponent } from '../../shared/page-state';
+import { PortalCapabilities } from '../../shared/portal-capabilities';
 import { CONTAINER_NAVIGATION } from '../../shared/portal-slots';
 import { DailyDashboard, RESERVATIONS_TARGET } from '../data/daily-dashboard-source';
 import { REPORTS_COPY } from '../reports-copy';
@@ -27,7 +28,7 @@ import { REPORTS_COPY } from '../reports-copy';
           </dl>
         }
       </csh-page-state>
-      @if (navigate) {
+      @if (navigate && caps.canReadReservations()) {
         <a class="csh-reports-link" role="link" tabindex="0" (click)="leave()" (keydown.enter)="leave()">{{ t.reservations }}</a>
       }
     </article>
@@ -37,6 +38,7 @@ export class DailyDashboardComponent {
   readonly state = input.required<PageState<DailyDashboard>>();
   protected readonly t = REPORTS_COPY;
   protected readonly navigate = inject(CONTAINER_NAVIGATION);
+  protected readonly caps = inject(PortalCapabilities);
 
   protected rows(day: DailyDashboard): readonly { label: string; value: number; note?: string }[] {
     return [
