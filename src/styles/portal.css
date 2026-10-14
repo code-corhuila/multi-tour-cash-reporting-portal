@@ -1,5 +1,40 @@
-/* cash-reporting-portal: every rule lives under .csh-root with the csh- prefix (plan D-08). Tokens arrive with the shared base. */
+/* cash-reporting-portal: every rule lives under .csh-root with the csh- prefix (plan D-08).
+   Tokens from landing/main.css of the mockup (12-ux-ui section 2); no colour outside them, no font CDN. */
 .csh-root {
-  display: block;
-  min-width: 0;
+  --csh-bg: #f5f7f7; --csh-surface: #ffffff; --csh-muted: #eef2f1;
+  --csh-line: #d7e0de; --csh-line-strong: #c3d0cc;
+  --csh-text: #17252b; --csh-soft: #5a6b70;
+  --csh-accent: #2f6b57; --csh-accent-strong: #1f4d3d; --csh-accent-soft: rgba(47, 107, 87, 0.1);
+  --csh-cta: #e9a23b; --csh-cta-strong: #c07f22;
+  --csh-success: #17685f; --csh-success-soft: #ddf0e7; --csh-warning: #a4621e; --csh-warning-soft: #fff1dc;
+  --csh-error: #b34a4a; --csh-error-soft: #fbe9e9; --csh-info: #2d6480; --csh-info-soft: #e3eef5;
+  --csh-shadow: 0 12px 28px rgba(23, 37, 43, 0.07); --csh-focus: 0 0 0 3px rgba(31, 77, 61, 0.35);
+  --csh-radius-panel: 16px; --csh-radius-card: 14px; --csh-radius-control: 10px; --csh-radius-pill: 999px;
+  display: block; min-width: 0; background: var(--csh-bg); color: var(--csh-text);
+  font: 1rem/1.5 "Manrope", "Segoe UI", system-ui, sans-serif;
+}
+.csh-root *, .csh-root *::before, .csh-root *::after { box-sizing: border-box; }
+.csh-root button { min-height: 40px; padding: 0 16px; border: 1px solid var(--csh-line-strong); border-radius: var(--csh-radius-control); background: var(--csh-surface); color: var(--csh-accent-strong); font: inherit; font-weight: 700; cursor: pointer; }
+.csh-root button:hover:not(:disabled) { border-color: var(--csh-accent); }
+.csh-root button:disabled { cursor: not-allowed; opacity: 0.6; }
+.csh-root :focus-visible { outline: none; box-shadow: var(--csh-focus); }
+
+/* The operator sidebar of admin-caja.html, inside the portal element (lesson 7: no fixed, sticky or viewport size). */
+.csh-root .csh-shell { display: grid; grid-template-columns: 226px minmax(0, 1fr); min-height: 100%; }
+.csh-root .csh-sidebar { display: flex; flex-direction: column; padding: 22px 14px 18px; background: var(--csh-surface); border-right: 1px solid var(--csh-line); }
+.csh-root .csh-brand { margin: 0; font-size: 0.9rem; font-weight: 800; letter-spacing: 0.12em; }
+.csh-root .csh-role { margin: 10px 0 26px; color: var(--csh-soft); font-size: 0.7rem; font-weight: 800; letter-spacing: 0.08em; text-transform: uppercase; }
+.csh-root .csh-nav { display: grid; gap: 2px; }
+.csh-root .csh-nav button { min-height: 0; padding: 9px 11px; border: 0; border-left: 3px solid transparent; border-radius: 7px; background: transparent; color: var(--csh-soft); font-size: 0.85rem; text-align: left; }
+.csh-root .csh-nav button:hover:not(.csh-is-active) { background: var(--csh-muted); color: var(--csh-text); }
+.csh-root .csh-nav button.csh-is-active { border-left-color: var(--csh-accent); background: var(--csh-accent-soft); color: var(--csh-accent-strong); font-weight: 800; }
+.csh-root .csh-content { width: min(100%, 1420px); padding: 32px clamp(20px, 4vw, 56px) 56px; }
+
+/* The four states (plan D-07). */
+.csh-root .csh-state-note { margin: 0; padding: 18px 0; color: var(--csh-soft); }
+.csh-root .csh-state-error { margin: 0 0 12px; padding: 12px 14px; border-radius: var(--csh-radius-control); background: var(--csh-error-soft); color: var(--csh-error); font-weight: 700; }
+
+@media (max-width: 860px) {
+  .csh-root .csh-shell { grid-template-columns: 1fr; }
+  .csh-root .csh-sidebar { padding: 16px; border-right: 0; border-bottom: 1px solid var(--csh-line); }
 }
