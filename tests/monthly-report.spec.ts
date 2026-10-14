@@ -258,10 +258,10 @@ describe('irACajaOpensTheCash', () => {
   const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('button.csh-reports-link')).find((l) => l.textContent?.trim() === 'Ir a caja');
   const withCash = [{ provide: PORTAL_AREA_LIST, useValue: [...PORTAL_AREAS, { key: 'cash', label: 'Caja', component: FakeCash }] }];
 
-  it('opens the area Caja of this portal by click and by Enter', async () => {
+  it('opens the area Caja of this portal as a native button (click, Enter and Space)', async () => {
     const { host, settle: again } = await shellAs(['MANAGER'], [...demoSources({ request: vi.fn() }) as Provider[], ...withCash]);
-    expect(link(host)!.getAttribute('tabindex')).toBe('0');
-    link(host)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await again();
+    expect(link(host)!.getAttribute('type')).toBe('button');
+    link(host)!.click(); await again();
     expect(host.querySelector('main h1')?.textContent?.trim()).toBe('Caja');
   });
 
