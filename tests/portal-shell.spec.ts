@@ -58,8 +58,8 @@ describe('finalCustomerAndUnknownRoleGetNoCashArea', () => {
       expect(navigation.open('cash')).toBe(false);
     });
 
-  it('keeps a frozen registry; each story appends one entry (HU-CSH-001: cash, HU-CSH-002: reports)', () => {
-    expect(PORTAL_AREAS.map((area) => area.key)).toEqual(['cash', 'reports']);
+  it('keeps a frozen registry; each story appends one entry (HU-CSH-001: cash and its history, HU-CSH-003: the consolidation, HU-CSH-002: reports)', () => {
+    expect(PORTAL_AREAS.map((area) => area.key)).toEqual(['cash', 'cash-history', 'cash-monthly', 'reports']);
     expect(Object.isFrozen(PORTAL_AREAS)).toBe(true);
   });
 });
