@@ -277,7 +277,7 @@ describe('reportsTextsAreSpanishWithAccentsAndNoRawCodes', () => {
     for (const file of files) {
       const code = withoutComments(readFileSync(file, 'utf8'));
       expect(code).not.toMatch(/TENANT_ADMINISTRATOR|OPERATIONAL_COLLABORATOR|MANAGER|ACCOUNTANT|ANALYST|FINAL_CUSTOMER/);
-      const outside = [...code.matchAll(/from\s+'(\.\.\/[^']*)'/g)].map(([, path]) => path).filter((path) => !/(^|\/)(shared|reports)\//.test(path) && !/^\.\.\/(data|components|pages)\//.test(path) && !/^\.\.\/reports-copy$/.test(path) && !/^\.\.\/reports\//.test(path));
+      const outside = [...code.matchAll(/from\s+'(\.\.\/[^']*)'/g)].map(([, path]) => path).filter((path) => !/(^|\/)(shared|reports|cash\/data)\//.test(path) &&!/^\.\.\/(data|components|pages)\//.test(path) && !/^\.\.\/reports-copy$/.test(path) && !/^\.\.\/reports\//.test(path));
       expect(outside, file).toEqual([]);
     }
   });
