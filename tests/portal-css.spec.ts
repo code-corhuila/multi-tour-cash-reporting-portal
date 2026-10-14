@@ -47,3 +47,18 @@ describe('portalCssUsesOnlyItsTokensAndPrefix', () => {
     expect(loose).toEqual([]);
   });
 });
+
+// Typography of the portal (owner's request, DP-RM3 closing): the fallback font is heavier than the Manrope of the mockup,
+// so no weight above 700 is used and the large figures and titles stay at 700 at most.
+describe('portalTypographyIsNotHeavierThanTheMockup', () => {
+  it('uses no font weight of 800 or 900', () => {
+    expect([...code.matchAll(/font-weight:\s*(\d+)/g)].map(([, weight]) => Number(weight)).filter((weight) => weight > 700)).toEqual([]);
+  });
+
+  it('keeps the big figures at 700 and the labels of the metrics at 600 at most', () => {
+    const body = (selector: string) => rules.find((rule) => rule.selector === selector)?.body ?? '';
+    expect(body('.csh-root .csh-reports-value')).toMatch(/font-weight:\s*700/);
+    expect(body('.csh-root .csh-reports-metric dt')).toMatch(/font-weight:\s*600/);
+    expect(body('.csh-root .csh-reports-title')).not.toMatch(/font-weight:\s*[89]00/);
+  });
+});
