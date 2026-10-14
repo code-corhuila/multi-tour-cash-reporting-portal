@@ -255,13 +255,13 @@ describe('reportArticleShowsTheSamePeriodsAsTheConsolidation', () => {
 });
 
 describe('irACajaOpensTheCash', () => {
-  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('[role="link"]')).find((l) => l.textContent?.trim() === 'Ir a caja');
+  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('button.csh-reports-link')).find((l) => l.textContent?.trim() === 'Ir a caja');
   const withCash = [{ provide: PORTAL_AREA_LIST, useValue: [...PORTAL_AREAS, { key: 'cash', label: 'Caja', component: FakeCash }] }];
 
-  it('opens the area Caja of this portal by click and by Enter', async () => {
+  it('opens the area Caja of this portal as a native button (click, Enter and Space)', async () => {
     const { host, settle: again } = await shellAs(['MANAGER'], [...demoSources({ request: vi.fn() }) as Provider[], ...withCash]);
-    expect(link(host)!.getAttribute('tabindex')).toBe('0');
-    link(host)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await again();
+    expect(link(host)!.getAttribute('type')).toBe('button');
+    link(host)!.click(); await again();
     expect(host.querySelector('main h1')?.textContent?.trim()).toBe('Caja');
   });
 
@@ -281,7 +281,7 @@ describe('optionalRolesReadTheReportWithNoAction', () => {
     expect(metrics(content).map((m) => m[1])).toEqual(['$4.150.000', '$3.380.000', '$480.000', '2']);
     expect(entries(content).length).toBe(2);
     expect(content.querySelectorAll('input, select, textarea, form').length).toBe(0);
-    expect(Array.from(content.querySelectorAll('button')).map((b) => flat(b.textContent))).toEqual(['Exportar CSV', 'Exportar PDF']);
+    expect(Array.from(content.querySelectorAll('button:not(.csh-reports-link)')).map((b) => flat(b.textContent))).toEqual(['Exportar CSV', 'Exportar PDF']);
   });
 });
 
