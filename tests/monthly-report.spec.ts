@@ -178,9 +178,15 @@ describe('theConsolidatedTotalAddsNoDailyBase', () => {
     expect(list[1]).toMatchObject({ registeredCancellations: 0, registeredOperationalCosts: 0 });
   });
 
-  it('the demo answers Septiembre 2026 with 1.040.000 and Agosto 2026 with 1.000.000, both read from the movements of the cash store', async () => {
+  it('the demo answers one period, Septiembre 2026 with 1.040.000, read from the movements of the cash store (the mockup has no closures)', async () => {
     const list = await new DemoMonthlyReportSource().periods();
-    expect(list).toEqual([SEP, AUG]);
+    expect(list).toEqual([SEP]);
+  });
+
+  it('closing the day does not add a period nor count its movements twice', async () => {
+    const store = new DemoCashStore({ now: () => Date.parse('2026-09-01T18:05:00'), actor: () => 'Administrador del tenant' });
+    store.close('k-1');
+    expect(await new DemoMonthlyReportSource(store).periods()).toEqual([SEP]);
   });
 
   it('the report follows the cash: a movement registered in the store changes the period', async () => {
@@ -259,7 +265,7 @@ describe('reportArticleShowsTheSamePeriodsAsTheConsolidation', () => {
     const source = new DemoMonthlyReportSource();
     const { host } = await renderPage(source, new DemoPeriodSummarySource(source));
     const list = await source.periods();
-    expect(entries(host).map((e) => flat(e.querySelector('h3')?.textContent))).toEqual(['Septiembre 2026', 'Agosto 2026']);
+    expect(entries(host).map((e) => flat(e.querySelector('h3')?.textContent))).toEqual(['Septiembre 2026']);
     expect(entries(host).map((e) => fields(e)[4][1])).toEqual(list.map((p) => `$${String(p.consolidatedCashTotal / 100).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`));
   });
 });
@@ -289,7 +295,7 @@ describe('optionalRolesReadTheReportWithNoAction', () => {
     const content = host.querySelector('main') as HTMLElement;
     await vi.waitFor(async () => { await again(); expect(metrics(content).length).toBe(4); });
     expect(metrics(content).map((m) => m[1])).toEqual(['$7.677.400', '$1.290.000', '$0', '0']);
-    expect(entries(content).length).toBe(2);
+    expect(entries(content).length).toBe(1);
     expect(content.querySelectorAll('input, select, textarea, form').length).toBe(0);
     expect(Array.from(content.querySelectorAll('button:not(.csh-reports-link)')).map((b) => flat(b.textContent))).toEqual(['Exportar CSV', 'Exportar PDF']);
   });
