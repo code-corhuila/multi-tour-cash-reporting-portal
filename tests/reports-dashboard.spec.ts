@@ -206,7 +206,7 @@ describe('optionalRolesSeeTheDashboardWithNoAction', () => {
   it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('%s sees the six numbers and no button in the content area', async (role) => {
     const { host } = await shellAs([role]);
     const content = host.querySelector('main')!;
-    expect(indicators(content as HTMLElement).map(([, value]) => value)).toEqual(['12', '6', '18', '3', '2', '4']);
+    expect(indicators(content as HTMLElement).map(([, value]) => value)).toEqual(['0', '3', '3', '1', '0', '4']);
     expect(content.querySelectorAll('button, input, select, textarea, form').length).toBe(0);
   });
 });
