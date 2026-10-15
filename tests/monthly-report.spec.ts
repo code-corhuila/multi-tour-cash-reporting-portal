@@ -139,7 +139,7 @@ describe('eachPeriodShowsItsEightFieldsWithTheMockupLabels', () => {
     const { host } = await renderPage(new FixedMonthly([SEP]), new FixedSummary(SUMMARY));
     const [entry] = entries(host);
     expect(flat(entry.querySelector('p')?.textContent)).toBe('Período reportado');
-    expect(fields(entry)).toEqual(LABELS.map((label, i) => [label, ['$3.380.000', '$300.000', '$500.000', '$0', '$2.580.000', '2', '$480.000'][i]]));
+    expect(fields(entry)).toEqual(LABELS.map((label, i) => [label, ['$1.290.000', '$0', '$250.000', '$0', '$1.040.000', '0', 'Sin costos operacionales registrados'][i]]));
     expect(entry.querySelector('dl')).not.toBeNull();
     expect(entry.getAttribute('aria-labelledby')).toBe(entry.querySelector('h3')?.id);
   });

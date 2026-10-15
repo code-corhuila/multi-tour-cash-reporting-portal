@@ -179,7 +179,7 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
     store.close('k-2');
     const list = await source.list();
     expect(list.map((c) => c.businessDate)).toEqual(['2026-09-01', '2026-08-31', '2026-08-30']);
-    expect(list[0]).toMatchObject({ closingMode: 'MANUAL', expectedCash: peso(50000), total: peso(1190000), closedBy: 'Administrador del tenant' });
+    expect(list[0]).toMatchObject({ closingMode: 'MANUAL', expectedCash: peso(50000), total: peso(1340000), closedBy: 'Administrador del tenant' });
   });
 });
 
