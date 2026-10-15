@@ -26,20 +26,7 @@ const LEDGER: readonly LedgerEntry[] = [
   entry('cm-4', '15:30', 'INCOME', 'Pago reserva #RES-1903', 50000000, 'TRANSFER', false),
 ];
 
-/** The closures before the demo day, newest first (spec 001- section 6): 31 ago with an operational opening, 30 ago closed by itself over a validated transfer. */
-const closed = (id: string, businessDate: string, movement: CashMovement, over: Partial<CashClosure>): CashClosure => ({
-  cashClosureId: id, businessDate, closingMode: 'MANUAL', origin: 'OPERATIONAL_OPENING', reopened: false, openingBase: BASE, income: movement.amount, operationalPayments: 0,
-  expenses: 0, refunds: 0, total: BASE + movement.amount, expectedCash: BASE + movement.amount, closedBy: `${WHO} (Administrador del tenant)`,
-  closedAt: `${businessDate}T18:00:00`, reopenings: [], corrections: [], movements: [movement], nonCashMovements: movement.paymentMedium === 'TRANSFER' ? 1 : 0, ...over,
-});
-const income = (id: string, date: string, time: string, concept: string, amount: number, paymentMedium: Medium): CashMovement =>
-  ({ cashMovementId: id, movementType: 'INCOME', concept, amount, paymentMedium, afterClosing: false, registeredAt: `${date}T${time}:00`, registeredBy: WHO });
-const PREVIOUS: readonly CashClosure[] = [
-  closed('cl-0831', '2026-08-31', income('cm-0831', '2026-08-31', '10:15', 'Cobro en efectivo de reservas', 80000000, 'CASH'), {}),
-  closed('cl-0830', '2026-08-30', income('cm-0830', '2026-08-30', '10:30', 'Pago reserva #RES-1899', 20000000, 'TRANSFER'), {
-    closingMode: 'AUTOMATIC', origin: 'AUTOMATIC_CREATION', openingBase: 0, total: 20000000, expectedCash: null, closedBy: 'Cierre automático (Multitour)', closedAt: '2026-08-30T23:59:00' }),
-];
-
+/** The mockup keeps no closure before the demo day (its history starts empty, spec 001- section 6): the only closure is the day itself once it is closed. */
 const magnitude = (movements: readonly CashMovement[], type: Type) =>
   movements.filter((m) => m.movementType === type).reduce((total, m) => total + Math.abs(m.amount), 0);
 const net = (movements: readonly CashMovement[], medium: Medium) =>
@@ -116,17 +103,17 @@ export class DemoCashStore {
     });
   }
 
-  /** The closures newest first: the day of the page once it is closed (a second close creates none), then the seeded ones. */
+  /** The closures: only the day of the page once it is closed (a second close creates none). */
   closures(): CashClosure[] {
     const state = this.current();
-    if (state.status !== 'CLOSED') { return [...PREVIOUS]; }
+    if (state.status !== 'CLOSED') { return []; }
     const { metrics } = this.read();
     const closing = state.closing ?? { at: `${BUSINESS_DATE}T18:00:00`, by: `${WHO} (Administrador del tenant)` };
     return [{
       cashClosureId: `cl-${BUSINESS_DATE}`, businessDate: BUSINESS_DATE, closingMode: 'MANUAL', origin: state.origin ?? 'OPERATIONAL_OPENING', reopened: false, openingBase: state.base,
       income: metrics.income, operationalPayments: metrics.operationalPayments, expenses: metrics.expenses, refunds: metrics.refunds, total: metrics.total, expectedCash: metrics.expectedCash,
       closedBy: closing.by, closedAt: closing.at, reopenings: [], corrections: [], movements: [...state.movements], nonCashMovements: state.movements.some((m) => m.paymentMedium === 'TRANSFER') ? 1 : 0,
-    }, ...PREVIOUS];
+    }];
   }
 
   private stamp(): string {
