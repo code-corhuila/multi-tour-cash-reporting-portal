@@ -9,6 +9,7 @@ import { DemoCashBaseWriter, DemoCashClosingWriter, DemoCashDaySource, DemoCashS
 import { IdempotencyKeys } from '../src/app/shared/idempotency-keys';
 import { PortalActor } from '../src/app/shared/portal-capabilities';
 import { sourceProviders as demoSources } from '../src/app/sources.demo';
+import { CASH_CONSULTATION_LINKS } from '../src/app/shared/portal-slots';
 
 // HU-CSH-001 (spec 001-, T-04, AC-CJ.9): screen 14, admin-caja.html, the button "Ajustar base diaria" and its panel "Ajuste".
 const DAY: CashDay = {
@@ -197,7 +198,7 @@ describe('theDemoStoreRecalculatesTheDayWithTheNewBase', () => {
   });
 
   it('shows the new base, the total and the expected cash on the screen built with the demo providers', async () => {
-    TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(['TENANT_ADMINISTRATOR']) }, ...(demoSources({ request: () => Promise.reject(new Error('unused')) } as never) as never[])] });
+    TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(['TENANT_ADMINISTRATOR']) }, ...(demoSources({ request: () => Promise.reject(new Error('unused')) } as never) as { provide: unknown }[]).filter((p) => p.provide !== CASH_CONSULTATION_LINKS) as never[]] });
     const fixture = TestBed.createComponent(CashDayPageComponent);
     await settle(fixture);
     const host: HTMLElement = fixture.nativeElement;
