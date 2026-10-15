@@ -85,8 +85,9 @@
 }
 
 /* HU-CSH-001, screen 14 (admin-caja.html), read side: header, note, hero, the seven metrics and the movements table. */
-.csh-root .csh-cash-header { display: grid; gap: 8px; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--csh-line); }
+.csh-root .csh-cash-header { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 8px 16px; padding-bottom: 12px; margin-bottom: 16px; border-bottom: 1px solid var(--csh-line); }
 .csh-root .csh-cash-eyebrow { margin: 0; color: var(--csh-soft); font-size: 0.72rem; font-weight: 600; letter-spacing: 0.09em; text-transform: uppercase; }
+.csh-root .csh-cash-header-main { display: grid; gap: 8px; }
 .csh-root .csh-cash-header .csh-cash-eyebrow { color: var(--csh-accent-strong); letter-spacing: 0.08em; }
 .csh-root .csh-cash-title { margin: 0; font-size: clamp(1.35rem, 1.15rem + 0.6vw, 1.7rem); font-weight: 700; letter-spacing: -0.02em; line-height: 1.15; }
 .csh-root .csh-cash-access-note { margin: 0 0 18px; padding: 12px 14px; border: 1px solid var(--csh-card-line); border-radius: var(--csh-radius-control); background: var(--csh-hero-from); color: var(--csh-soft); font-size: 0.78rem; line-height: 1.45; }
