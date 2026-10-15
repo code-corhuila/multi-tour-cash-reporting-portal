@@ -22,6 +22,8 @@ export interface MountProps {
   initialParams?: Readonly<Record<string, string>>;
   /** Asks the container to open an area of another portal (the container also takes a path text, which this portal never sends); absent, the links to it are not drawn. */
   navigate?: (target: PortalTarget) => void;
+  /** Who draws the navigation chrome: 'container' means the container draws the sidebar and the portal only shows its content; absent, the portal draws its own. */
+  chrome?: 'container';
 }
 
 export type PortalApiClient = MountProps['apiClient'];
