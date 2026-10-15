@@ -14,5 +14,8 @@ export type ContainerNavigation = (target: PortalTarget) => void;
 /** MountProps.navigate when the container offers it; null otherwise, and the links that need it are not drawn. */
 export const CONTAINER_NAVIGATION = new InjectionToken<ContainerNavigation | null>('CONTAINER_NAVIGATION', { factory: () => null });
 
+/** true when the container draws the navigation (MountProps.chrome === 'container'): the shell then omits its sidebar. */
+export const CONTAINER_CHROME = new InjectionToken<boolean>('CONTAINER_CHROME', { factory: () => false });
+
 /** Where the panel "Consulta · Historial y consolidación" of screen 14 gets its links (plan D-02): HU-CSH-003 contributes "Consolidación mensual"; with none, the panel is not drawn. */
 export const CASH_CONSULTATION_LINKS = new InjectionToken<readonly Type<unknown>[]>('CASH_CONSULTATION_LINKS', { factory: () => [] });
