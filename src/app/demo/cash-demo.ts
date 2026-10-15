@@ -33,15 +33,15 @@ const magnitude = (movements: readonly CashMovement[], type: Type) =>
 const net = (movements: readonly CashMovement[], medium: Medium) =>
   movements.filter((m) => m.paymentMedium === medium).reduce((total, m) => total + m.amount, 0);
 
-/** The rules of RN-CJ1 and RN-CJ10 live here, in the demo that stands for the service (plan D-03). */
-function resolve(movements: readonly CashMovement[]): CashDayMetrics {
+/** The rules of RN-CJ1 and RN-CJ10 live here, in the demo that stands for the service (plan D-03); a day without cash has no expected cash. */
+function resolve(movements: readonly CashMovement[], base: number, withCash: boolean): CashDayMetrics {
   const income = magnitude(movements, 'INCOME');
   const operationalPayments = magnitude(movements, 'OPERATIONAL_PAYMENT');
   const expenses = magnitude(movements, 'EXPENSE');
   const refunds = magnitude(movements, 'REFUND');
   return {
-    income, operationalPayments, expenses, refunds, total: BASE + income - operationalPayments - expenses - refunds,
-    expectedCash: BASE + net(movements, 'CASH'), netTransfers: net(movements, 'TRANSFER'),
+    income, operationalPayments, expenses, refunds, total: base + income - operationalPayments - expenses - refunds,
+    expectedCash: withCash ? base + net(movements, 'CASH') : null, netTransfers: net(movements, 'TRANSFER'),
   };
 }
 
@@ -140,13 +140,10 @@ export class DemoCashStore {
 }
 
 export class DemoCashDaySource extends CashDaySource {
+  constructor(private readonly store: DemoCashStore = new DemoCashStore()) { super(); }
   override today(): Promise<CashDay> {
     if (demoFixture('failing-cash-source')) { return Promise.reject(new Error('failing-cash-source')); }
-    const movements = demoFixture('empty-cash-day') ? [] : LEDGER.filter((m) => m.validated).map(({ validated: _validated, ...movement }) => movement);
-    return Promise.resolve({
-      businessDate: BUSINESS_DATE, status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: BASE,
-      openedBy: `${WHO} (Administrador del tenant)`, movements, metrics: resolve(movements),
-    });
+    return Promise.resolve(this.store.read());
   }
 }
 

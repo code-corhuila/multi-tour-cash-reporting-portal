@@ -1,4 +1,15 @@
 /**
+ * An area of a portal, possibly another one than the caller; the container owns the address (HU-FRT-001 spec 003-, plan D-04).
+ * Local copy of `PortalTarget` of its `core/client/types.ts`: the portal never imports the container (norm 5.4.1, pillar 10).
+ */
+export interface PortalTarget {
+  /** Key of the portal in the container's federation manifest. */
+  readonly portal: string;
+  /** Area key declared by that portal. */
+  readonly area: string;
+}
+
+/**
  * What the multi-tour-front container hands to `mount` (ADR-007); mirrors its `core/client/types.ts`.
  * Fields the portal does not read yet (`scope`, `navigate`, the visual identity) are left out on purpose.
  */

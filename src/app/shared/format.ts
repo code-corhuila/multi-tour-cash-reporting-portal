@@ -32,3 +32,6 @@ export function formatDateTime(isoDateTime: string): string {
   const hour = formatHour(isoDateTime);
   return hour === isoDateTime ? formatDate(isoDateTime) : `${formatDate(isoDateTime)} · ${hour}`;
 }
+
+/** Cents as whole pesos with no symbol or grouping, `4150000`, the unit of the exported CSV; the sign is kept. */
+export function formatPesos(cents: number): string { return String(Math.round(cents / 100)); }

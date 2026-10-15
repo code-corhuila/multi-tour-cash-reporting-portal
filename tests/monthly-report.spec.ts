@@ -11,6 +11,7 @@ import { MonthlyReportComponent } from '../src/app/reports/components/monthly-re
 import { PeriodSummaryComponent } from '../src/app/reports/components/period-summary.component';
 import { ReportsPageComponent } from '../src/app/reports/pages/reports-page.component';
 import { PORTAL_AREAS, PORTAL_AREA_LIST } from '../src/app/shared/portal-areas';
+import { PORTAL_INITIAL_PARAMS } from '../src/app/shared/portal-navigation';
 import { PortalActor } from '../src/app/shared/portal-capabilities';
 import { PortalShellComponent } from '../src/app/shared/portal-shell.component';
 import { REPORTS_MONTHLY_BLOCKS } from '../src/app/shared/portal-slots';
@@ -76,7 +77,7 @@ async function renderPage(monthly: MonthlyReportSource, summary: PeriodSummarySo
 }
 
 async function shellAs(roles: string[], providers: Provider[] = [...demoSources({ request: vi.fn() }) as Provider[]]) {
-  TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(roles) }, ...providers] });
+  TestBed.configureTestingModule({ providers: [{ provide: PortalActor, useValue: PortalActor.from(roles) }, { provide: PORTAL_INITIAL_PARAMS, useValue: { area: 'reports' } }, ...providers] });
   const fixture = TestBed.createComponent(PortalShellComponent);
   await settle(fixture);
   const host: HTMLElement = fixture.nativeElement;
@@ -270,25 +271,26 @@ describe('reportArticleShowsTheSamePeriodsAsTheConsolidation', () => {
 });
 
 describe('irACajaOpensTheCash', () => {
-  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('[role="link"]')).find((l) => l.textContent?.trim() === 'Ir a caja');
+  const link = (host: HTMLElement) => Array.from(host.querySelectorAll<HTMLElement>('button.csh-reports-link')).find((l) => l.textContent?.trim() === 'Ir a caja');
   const withCash = [{ provide: PORTAL_AREA_LIST, useValue: [...PORTAL_AREAS, { key: 'cash', label: 'Caja', component: FakeCash }] }];
 
-  it('opens the area Caja of this portal by click and by Enter', async () => {
+  it('opens the area Caja of this portal as a native button (click, Enter and Space)', async () => {
     const { host, settle: again } = await shellAs(['MANAGER'], [...demoSources({ request: vi.fn() }) as Provider[], ...withCash]);
-    expect(link(host)!.getAttribute('tabindex')).toBe('0');
-    link(host)!.dispatchEvent(new KeyboardEvent('keydown', { key: 'Enter', bubbles: true })); await again();
+    expect(link(host)!.getAttribute('type')).toBe('button');
+    link(host)!.click(); await again();
     expect(host.querySelector('main h1')?.textContent?.trim()).toBe('Caja');
   });
 
   it('is not drawn while the build has no area Caja', async () => {
-    const { host } = await shellAs(['MANAGER']);
+    const withoutCash = [{ provide: PORTAL_AREA_LIST, useValue: PORTAL_AREAS.filter((a) => a.key !== 'cash') }];
+    const { host } = await shellAs(['MANAGER'], [...demoSources({ request: vi.fn() }) as Provider[], ...withoutCash]);
     expect(link(host)).toBeUndefined();
     expect(flat(host.textContent)).not.toContain('Ir a caja');
   });
 });
 
 describe('optionalRolesReadTheReportWithNoAction', () => {
-  it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('%s sees the summary and the periods and no button in the content area', async (role) => {
+  it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('%s sees the summary and the periods and no action but the export', async (role) => {
     const { host, settle: again } = await shellAs([role]);
     const content = host.querySelector('main') as HTMLElement;
     await vi.waitFor(async () => { await again(); expect(metrics(content).length).toBe(4); });

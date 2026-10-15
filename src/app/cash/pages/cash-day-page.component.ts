@@ -50,11 +50,7 @@ import { CashDay, CashDaySource } from '../data/cash-day-source';
               </div>
             }
           </dl>
-          <section class="csh-cash-panel" aria-labelledby="csh-cash-movements-title">
-            <p class="csh-cash-eyebrow">{{ t.movementsEyebrow }}</p>
-            <h2 id="csh-cash-movements-title">{{ t.movementsTitle }}</h2>
-            <csh-cash-movements [movements]="day.movements" />
-          </section>
+          <csh-cash-register [day]="day" (answered)="refresh()" />
         }
       </csh-page-state>
       @if (links.length) {
@@ -89,6 +85,9 @@ export class CashDayPageComponent {
 
   /** The newest request wins (PageLoad); the source takes no tenant and no day. */
   reload(): void { this.load.run(() => this.source.today().then((day) => [day])); }
+
+  /** Reads the day again after a write, without the loading state, so the form keeps its answer on screen. */
+  refresh(): void { this.load.refresh(() => this.source.today().then((day) => [day])); }
 
   /** The words around the figures of the hero (app.js:7016); the figures are the source's. */
   protected heroOf(day: CashDay): { headline: string; consolidated: string; note: string } {

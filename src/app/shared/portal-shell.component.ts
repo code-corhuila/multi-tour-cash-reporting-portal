@@ -1,6 +1,7 @@
 import { NgComponentOutlet } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, Injector, afterNextRender, computed, inject } from '@angular/core';
 import { focusHeading } from './focus';
+import { SHELL_COPY } from './shell-copy';
 import { PORTAL_AREA_LIST } from './portal-areas';
 import { PortalCapabilities } from './portal-capabilities';
 import { CONTAINER_CHROME } from './portal-slots';
@@ -20,9 +21,9 @@ import { PORTAL_INITIAL_PARAMS, PortalNavigation } from './portal-navigation';
       <div class="csh-shell" [class.csh-no-sidebar]="hideSidebar">
         @if (!hideSidebar) {
         <aside class="csh-sidebar">
-          <p class="csh-brand">MULTITOUR</p>
+          <p class="csh-brand">{{ t.brand }}</p>
           <p class="csh-role">{{ roleLabel }}</p>
-          <nav class="csh-nav" aria-label="Administración del operador">
+          <nav class="csh-nav" [attr.aria-label]="t.navigation">
             @for (area of menu; track area.key) {
               <button type="button" [class.csh-is-active]="area.key === active()" [attr.aria-current]="area.key === active() ? 'page' : null"
                 (click)="navigation.open(area.key)">{{ area.label }}</button>
@@ -40,6 +41,7 @@ import { PORTAL_INITIAL_PARAMS, PortalNavigation } from './portal-navigation';
 export class PortalShellComponent {
   private readonly injector = inject(Injector);
   protected readonly navigation = inject(PortalNavigation);
+  protected readonly t = SHELL_COPY;
   private readonly capabilities = inject(PortalCapabilities);
   private readonly areas = this.capabilities.isDenied() ? [] : inject(PORTAL_AREA_LIST).filter((area) => area.isAvailable?.(this.injector) ?? true);
   /** The sidebar items: every area but the sub-screens (menu: false); with none, nothing is offered. */

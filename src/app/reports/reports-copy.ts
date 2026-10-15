@@ -31,4 +31,8 @@ export const REPORTS_COPY = Object.freeze({
   monthlyIntro: 'Se calcula con los movimientos de caja del mes (ingresos, pagos operacionales, gastos y devoluciones efectivamente realizadas), sin volver a sumar los cierres diarios ni la base.',
   monthlyEmpty: 'Aún no hay movimientos de caja registrados para consolidar el reporte mensual.',
   cash: 'Ir a caja',
+  exportCsv: 'Exportar CSV',
+  exportPdf: 'Exportar PDF',
+  exportLabel: 'Exportar el reporte',
+  queryOnlyNote: 'Tu rol es de solo consulta: puedes revisar y exportar los reportes, sin registrar ni modificar información.',
 });
