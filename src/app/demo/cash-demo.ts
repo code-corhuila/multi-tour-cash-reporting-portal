@@ -9,7 +9,7 @@ import { PortalCapabilities } from '../shared/portal-capabilities';
 import { CASH_CONSULTATION_LINKS } from '../shared/portal-slots';
 import { demoFixture } from './demo-fixtures';
 
-/** The demo day of 001- (01 sep 2026, the mockup's demo clock): one base, one income and one refund by transfer, one cash expense (spec section 6). */
+/** The demo day of 001- (01 sep 2026, the mockup's demo clock): one base, one income by transfer and one cash expense, as the mockup draws it (spec section 6). */
 const BUSINESS_DATE = '2026-09-01';
 const BASE = 30000000;
 const WHO = 'Fernanda Robayo';
@@ -23,7 +23,6 @@ const entry = (id: string, time: string, movementType: Type, concept: string, am
 const LEDGER: readonly LedgerEntry[] = [
   entry('cm-1', '09:20', 'INCOME', 'Pago reserva #RES-1901', 129000000, 'TRANSFER'),
   entry('cm-2', '11:45', 'EXPENSE', 'Compra operativa', -25000000, 'CASH'),
-  entry('cm-3', '14:10', 'REFUND', 'Devolución reserva #RES-1902', -15000000, 'TRANSFER'),
   entry('cm-4', '15:30', 'INCOME', 'Pago reserva #RES-1903', 50000000, 'TRANSFER', false),
 ];
 

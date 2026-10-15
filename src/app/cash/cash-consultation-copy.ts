@@ -12,7 +12,7 @@ export const CASH_CONSULTATION_COPY = Object.freeze({
     note: 'Todo cierre queda conservado sin borrarse, con sus aperturas, reaperturas y movimientos. Una corrección posterior al cierre solo puede registrarla el Administrador del tenant, con justificación obligatoria y trazabilidad, y nunca sobrescribe los valores originales del cierre. Las cajas creadas automáticamente por movimientos no efectivos y sin apertura operativa se cierran solas al finalizar el día.',
     empty: 'Aún no se han registrado cierres de caja.',
     closure: (date: string) => `Cierre ${date}`,
-    total: 'Total',
+    total: 'Total:',
     badge: { closed: 'Cerrado', reopened: 'Reabierto', automatic: 'Cierre automático' },
     lines: {
       base: 'Base', income: 'Ingresos', payments: 'Pagos operacionales', expenses: 'Gastos', refunds: 'Devoluciones',
