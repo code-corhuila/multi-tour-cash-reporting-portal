@@ -30,7 +30,7 @@ import { CashMovement } from '../data/cash-day-source';
               <div class="csh-history-head">
                 <div>
                   <p class="csh-cash-eyebrow" [id]="'csh-closure-' + closure.cashClosureId">{{ t.closure(date(closure.businessDate)) }}</p>
-                  <h2>{{ t.total }}: {{ money(closure.total) }}</h2>
+                  <h2>{{ t.total }} {{ money(closure.total) }}</h2>
                 </div>
                 <span class="csh-history-badge" [class.csh-history-badge-open]="closure.reopened">{{ badge(closure) }}</span>
               </div>
