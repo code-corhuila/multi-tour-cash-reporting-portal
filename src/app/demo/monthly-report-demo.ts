@@ -1,4 +1,6 @@
-import { Provider } from '@angular/core';
+import { Provider, inject } from '@angular/core';
+import { CashMovement as CashLedgerMovement } from '../cash/data/cash-day-source';
+import { DemoCashStore } from './cash-demo';
 import { MonthlyPeriod, MonthlyReportSource } from '../cash/data/monthly-report-source';
 import { PeriodSummary, PeriodSummarySource } from '../reports/data/period-summary-source';
 import { PeriodSummaryComponent } from '../reports/components/period-summary.component';
@@ -34,30 +36,37 @@ export function consolidate(movements: readonly CashMovement[], registered: Regi
   });
 }
 
-/** The demo closures: 31 ago, 01 and 02 sep 2026, each with a base of 300.000 that no total counts (spec section 6). */
 const peso = (amount: number) => amount * 100;
-const MOVEMENTS: readonly CashMovement[] = [
-  { id: 'c0831-base', date: '2026-08-31', kind: 'base', amount: peso(300000) }, { id: 'c0831-in', date: '2026-08-31', kind: 'income', amount: peso(800000) },
-  { id: 'c0901-base', date: '2026-09-01', kind: 'base', amount: peso(300000) }, { id: 'c0901-in', date: '2026-09-01', kind: 'income', amount: peso(2000000) },
-  { id: 'c0901-pay', date: '2026-09-01', kind: 'operational-payment', amount: peso(300000) },
-  { id: 'c0902-base', date: '2026-09-02', kind: 'base', amount: peso(300000) }, { id: 'c0902-in', date: '2026-09-02', kind: 'income', amount: peso(1380000) },
-  { id: 'c0902-exp', date: '2026-09-02', kind: 'expense', amount: peso(500000) },
-];
-const REGISTERED: RegisteredByPeriod = { '2026-09': { cancellations: 2, costs: peso(480000) } };
+const KINDS: Readonly<Record<CashLedgerMovement['movementType'], CashMovement['kind']>> = {
+  INCOME: 'income', OPERATIONAL_PAYMENT: 'operational-payment', EXPENSE: 'expense', REFUND: 'refund',
+};
 /** The month of the report date of the demo (03 sep 2026, DP-RM1): listed in zeros when it has no movement. */
 const REPORT_PERIOD = '2026-09';
-const SEEDED_SALES = peso(4150000);
+/** The mockup's "Ventas confirmadas" of its demo clock: a stand-in for the events of the commercial domain (spec 003- section 6). */
+const SEEDED_SALES = peso(7677400);
 
 const ZERO_PERIOD: MonthlyPeriod = {
   reportedPeriod: REPORT_PERIOD, periodIncome: 0, operationalPayments: 0, operationalExpenses: 0, executedRefunds: 0,
   consolidatedCashTotal: 0, registeredCancellations: 0, registeredOperationalCosts: 0,
 };
 
-/** DEMO (spec 003- DD-1): the periods are consolidated from seeded movements; the fixtures empty-period and failing-monthly are read here only. */
+/** DEMO (spec 003- DD-1): the periods are consolidated from the movements of the cash store (closures and the day alike, so Caja and Reportes never disagree); the fixtures empty-period and failing-monthly are read here only. */
 export class DemoMonthlyReportSource extends MonthlyReportSource {
+  constructor(private readonly store: DemoCashStore = new DemoCashStore()) { super(); }
+
   override periods(): Promise<readonly MonthlyPeriod[]> {
     if (demoFixture('failing-monthly')) { return Promise.reject(new Error('failing-monthly')); }
-    return Promise.resolve(demoFixture('empty-period') ? [ZERO_PERIOD] : consolidate(MOVEMENTS, REGISTERED));
+    return Promise.resolve(demoFixture('empty-period') ? [ZERO_PERIOD] : consolidate(this.movements()));
+  }
+
+  /** Each id counts once in consolidate: the day appears among the closures once it is closed. */
+  private movements(): CashMovement[] {
+    const day = this.store.read();
+    const dated = [
+      ...this.store.closures().map((closure) => ({ date: closure.businessDate, movements: closure.movements })),
+      { date: day.businessDate, movements: day.movements },
+    ];
+    return dated.flatMap(({ date, movements }) => movements.map((m) => ({ id: m.cashMovementId, date, kind: KINDS[m.movementType], amount: Math.abs(m.amount) })));
   }
 }
 
@@ -76,10 +85,11 @@ export class DemoPeriodSummarySource extends PeriodSummarySource {
 
 /** The two ports and the two blocks of screen 16: a build offers the blocks only with the ports they read (plan D-01). */
 export function monthlyReportDemoProviders(): Provider[] {
-  const monthly = new DemoMonthlyReportSource();
+  const store = () => inject(DemoCashStore);
+  const monthly = () => new DemoMonthlyReportSource(store());
   return [
-    { provide: MonthlyReportSource, useValue: monthly },
-    { provide: PeriodSummarySource, useValue: new DemoPeriodSummarySource(monthly) },
+    { provide: MonthlyReportSource, useFactory: monthly },
+    { provide: PeriodSummarySource, useFactory: () => new DemoPeriodSummarySource(inject(MonthlyReportSource)) },
     { provide: REPORTS_MONTHLY_BLOCKS, useValue: PeriodSummaryComponent, multi: true },
     { provide: REPORTS_MONTHLY_BLOCKS, useValue: MonthlyReportComponent, multi: true },
   ];
