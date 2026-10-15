@@ -1,6 +1,7 @@
 import { Provider, inject } from '@angular/core';
 import { CashClosure, CashClosuresSource } from '../cash/data/cash-closures-source';
 import { CashHistoryLinkComponent, CashMonthlyLinkComponent } from '../cash/components/cash-consultation-links.component';
+import { CashBaseResult, CashBaseWriter } from '../cash/data/cash-base-writer';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
 import { CashDay, CashDayMetrics, CashDaySource, CashDayStatus, CashMovement, CashOrigin } from '../cash/data/cash-day-source';
 import { CashMovementResult, CashMovementWriter, NewCashMovement } from '../cash/data/cash-movement-writer';
@@ -103,6 +104,17 @@ export class DemoCashStore {
     });
   }
 
+  /** The base of an open operative day only; the metrics are resolved again from it (RN-CJ10). No audit trail is kept: the demo has no port for it. */
+  adjustBase(baseCents: number, key: string): CashBaseResult {
+    return this.once(key, (): CashBaseResult => {
+      const state = this.current();
+      if (state.status === 'CLOSED') { return { kind: 'refused', reason: 'DAY_CLOSED' }; }
+      if (state.status !== 'OPEN_OPERATIVE') { return { kind: 'refused', reason: 'NOT_OPERATIVE' }; }
+      state.base = baseCents;
+      return { kind: 'adjusted' };
+    });
+  }
+
   /** The closures: only the day of the page once it is closed (a second close creates none). */
   closures(): CashClosure[] {
     const state = this.current();
@@ -149,6 +161,11 @@ export class DemoCashMovementWriter extends CashMovementWriter {
   override register(movement: NewCashMovement, idempotencyKey: string): Promise<CashMovementResult> { return Promise.resolve(this.store.register(movement, idempotencyKey)); }
 }
 
+export class DemoCashBaseWriter extends CashBaseWriter {
+  constructor(private readonly store: DemoCashStore) { super(); }
+  override adjust(baseCents: number, idempotencyKey: string): Promise<CashBaseResult> { return Promise.resolve(this.store.adjustBase(baseCents, idempotencyKey)); }
+}
+
 export class DemoCashClosingWriter extends CashClosingWriter {
   constructor(private readonly store: DemoCashStore) { super(); }
   override close(idempotencyKey: string): Promise<CashClosingResult> { return Promise.resolve(this.store.close(idempotencyKey)); }
@@ -170,6 +187,7 @@ export function cashDemoProviders(): Provider[] {
     { provide: CASH_CONSULTATION_LINKS, useValue: CashHistoryLinkComponent, multi: true },
     { provide: CASH_CONSULTATION_LINKS, useValue: CashMonthlyLinkComponent, multi: true },
     { provide: CashMovementWriter, useFactory: () => new DemoCashMovementWriter(inject(DemoCashStore)) },
+    { provide: CashBaseWriter, useFactory: () => new DemoCashBaseWriter(inject(DemoCashStore)) },
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
   ];
 }

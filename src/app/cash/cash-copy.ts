@@ -27,6 +27,11 @@ export const CASH_COPY = Object.freeze({
     expected: ['Efectivo esperado', 'Base + entradas en efectivo - salidas en efectivo'],
     transfers: ['Transferencias netas', 'Se concilian aparte; no modifican el efectivo esperado'],
   },
+  base: {
+    action: 'Ajustar base diaria', eyebrow: 'Ajuste', title: 'Ajustar base diaria', label: 'Nueva base diaria', note: 'Registra la nueva base diaria parametrizada para hoy.',
+    cancel: 'Cancelar', save: 'Guardar base diaria', invalid: 'Registra una base diaria válida.', saved: 'Base diaria actualizada correctamente.',
+    refused: 'La base solo se ajusta con la caja abierta con apertura operativa.', failed: 'No se pudo completar la solicitud.',
+  },
   movementsEyebrow: 'Movimientos',
   movementsTitle: 'Registro de la jornada',
   form: {
