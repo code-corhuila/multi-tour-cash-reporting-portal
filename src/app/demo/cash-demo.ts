@@ -1,13 +1,12 @@
 import { Provider, inject } from '@angular/core';
 import { CashClosure, CashClosuresSource } from '../cash/data/cash-closures-source';
-import { CashHistoryLinkComponent, CashMonthlyLinkComponent } from '../cash/components/cash-consultation-links.component';
+import { cashConsultationSlotProviders } from '../cash/cash-consultation-slots';
 import { CashBaseResult, CashBaseWriter } from '../cash/data/cash-base-writer';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
 import { CashDay, CashDayMetrics, CashDaySource, CashDayStatus, CashMovement, CashOrigin } from '../cash/data/cash-day-source';
 import { CashMovementResult, CashMovementWriter, NewCashMovement } from '../cash/data/cash-movement-writer';
 import { Clock } from '../shared/clock';
 import { PortalCapabilities } from '../shared/portal-capabilities';
-import { CASH_CONSULTATION_LINKS } from '../shared/portal-slots';
 import { demoFixture } from './demo-fixtures';
 
 /** The demo day of 001- (01 sep 2026, the mockup's demo clock): one base, one income by transfer and one cash expense, as the mockup draws it (spec section 6). */
@@ -184,8 +183,7 @@ export function cashDemoProviders(): Provider[] {
     },
     { provide: CashDaySource, useFactory: () => new DemoCashDaySource(inject(DemoCashStore)) },
     { provide: CashClosuresSource, useFactory: () => new DemoCashClosuresSource(inject(DemoCashStore)) },
-    { provide: CASH_CONSULTATION_LINKS, useValue: CashHistoryLinkComponent, multi: true },
-    { provide: CASH_CONSULTATION_LINKS, useValue: CashMonthlyLinkComponent, multi: true },
+    ...cashConsultationSlotProviders(),
     { provide: CashMovementWriter, useFactory: () => new DemoCashMovementWriter(inject(DemoCashStore)) },
     { provide: CashBaseWriter, useFactory: () => new DemoCashBaseWriter(inject(DemoCashStore)) },
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
