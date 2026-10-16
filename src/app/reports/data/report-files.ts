@@ -1,4 +1,4 @@
-import { MonthlyPeriod } from '../../cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../../shared/monthly-period';
 import { formatCop, formatPesos } from '../../shared/format';
 import { PdfLine, buildPdf } from '../../shared/minimal-pdf';
 import { MONTHLY_PERIOD_COPY } from '../../shared/monthly-period-copy';

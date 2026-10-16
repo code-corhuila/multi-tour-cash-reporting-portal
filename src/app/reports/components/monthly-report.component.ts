@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, effect, inject } from '@angular/core';
-import { MonthlyPeriod, MonthlyReportSource } from '../../cash/data/monthly-report-source';
+import { MonthlyReportSource } from '../../cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../../shared/monthly-period';
 import { MonthlyPeriodComponent } from '../../shared/monthly-period.component';
 import { PageLoad, PageStateComponent } from '../../shared/page-state';
 import { PortalNavigation } from '../../shared/portal-navigation';
