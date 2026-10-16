@@ -15,10 +15,10 @@ import { PortalShellComponent } from '../src/app/shared/portal-shell.component';
 import { listSourceFiles, withoutComments } from './source-files';
 
 // HU-CSH-002 (spec 002-, tasks T-01 and T-02): screen 16 of the mockup, admin-reportes.html, article "Dashboard diario".
-// Demo day: 03 sep 2026, created 12, pending 6, confirmed 18, with balance 3, cancelled 2, about to run 4 (spec section 6).
+// Demo day: 01 sep 2026 (the mockup clock), created 0, pending 3, confirmed 3, with balance 1, cancelled 0, about to run 4 (mockup admin-reportes.html).
 const DAY: DailyDashboard = {
-  reportDate: '2026-09-03', createdReservations: 12, pendingPaymentReservations: 6, confirmedReservations: 18,
-  confirmedWithBalance: 3, cancelledReservations: 2, upcomingServices: 4,
+  reportDate: '2026-09-01', createdReservations: 0, pendingPaymentReservations: 3, confirmedReservations: 3,
+  confirmedWithBalance: 1, cancelledReservations: 0, upcomingServices: 4,
 };
 const ODD: DailyDashboard = { ...DAY, createdReservations: 7, pendingPaymentReservations: 0, confirmedReservations: 1, confirmedWithBalance: 5, cancelledReservations: 9, upcomingServices: 2 };
 const LABELS = ['Reservas creadas hoy', 'Pendientes de pago', 'Confirmadas', 'Confirmadas con saldo', 'Canceladas', 'Próximas a ejecutar'];
@@ -142,7 +142,7 @@ describe('dashboardShowsLoadingErrorWithRetryOrData', () => {
 describe('dashboardShowsTheSixIndicatorsWithTheMockupLabels', () => {
   it('reads the six labels in order over the seeded day', async () => {
     const { host } = await renderPage(new FixedSource(DAY));
-    expect(indicators(host)).toEqual(LABELS.map((label, i) => [label, String([12, 6, 18, 3, 2, 4][i])]));
+    expect(indicators(host)).toEqual(LABELS.map((label, i) => [label, String([0, 3, 3, 1, 0, 4][i])]));
     expect(host.querySelector('dl')).not.toBeNull();
   });
 
@@ -206,7 +206,7 @@ describe('optionalRolesSeeTheDashboardWithNoAction', () => {
   it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('%s sees the six numbers and no button in the content area', async (role) => {
     const { host } = await shellAs([role]);
     const content = host.querySelector('main')!;
-    expect(indicators(content as HTMLElement).map(([, value]) => value)).toEqual(['12', '6', '18', '3', '2', '4']);
+    expect(indicators(content as HTMLElement).map(([, value]) => value)).toEqual(['0', '3', '3', '1', '0', '4']);
     expect(content.querySelectorAll('button, input, select, textarea, form').length).toBe(0);
   });
 });

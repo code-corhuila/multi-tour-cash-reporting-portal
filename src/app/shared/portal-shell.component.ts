@@ -4,6 +4,7 @@ import { focusHeading } from './focus';
 import { SHELL_COPY } from './shell-copy';
 import { PORTAL_AREA_LIST } from './portal-areas';
 import { PortalCapabilities } from './portal-capabilities';
+import { CONTAINER_CHROME } from './portal-slots';
 import { PORTAL_INITIAL_PARAMS, PortalNavigation } from './portal-navigation';
 
 /**
@@ -17,7 +18,8 @@ import { PORTAL_INITIAL_PARAMS, PortalNavigation } from './portal-navigation';
   providers: [PortalNavigation],
   template: `
     @if (menu.length) {
-      <div class="csh-shell">
+      <div class="csh-shell" [class.csh-no-sidebar]="hideSidebar">
+        @if (!hideSidebar) {
         <aside class="csh-sidebar">
           <p class="csh-brand">{{ t.brand }}</p>
           <p class="csh-role">{{ roleLabel }}</p>
@@ -28,6 +30,7 @@ import { PORTAL_INITIAL_PARAMS, PortalNavigation } from './portal-navigation';
             }
           </nav>
         </aside>
+        }
         <main class="csh-content">
           @for (s of [screen()]; track s) { @if (s.area; as area) { <ng-container *ngComponentOutlet="area.component" /> } }
         </main>
@@ -48,6 +51,8 @@ export class PortalShellComponent {
   protected readonly screen = computed(() => ({ area: this.current(), visit: this.navigation.visit() }));
   /** The item marked active: the parent of an open sub-screen, or the open area itself. */
   protected readonly active = computed(() => this.current()?.parent ?? this.current()?.key);
+  /** The container draws the navigation (MountProps.chrome): the shell keeps its content and drops the sidebar. */
+  protected readonly hideSidebar = inject(CONTAINER_CHROME);
   protected readonly roleLabel = this.capabilities.roleLabel();
   private readonly host: HTMLElement = inject(ElementRef).nativeElement;
 

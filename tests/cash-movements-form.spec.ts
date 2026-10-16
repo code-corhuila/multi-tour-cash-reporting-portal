@@ -289,7 +289,7 @@ describe('theDemoStoreAppliesTheRulesOfTheService', () => {
     expect(await movements.register(expense(1000000), 'key-aaaaaaaa')).toEqual({ kind: 'registered', placement: 'IN_DAY' });
     const today = await day.today();
     expect(today.movements.at(-1)).toMatchObject({ movementType: 'EXPENSE', concept: 'Taxi', amount: -1000000, paymentMedium: 'CASH', afterClosing: false, registeredBy: 'Administrador del tenant' });
-    expect(today.metrics).toMatchObject({ expenses: 26000000, expectedCash: 4000000, total: 118000000 });
+    expect(today.metrics).toMatchObject({ expenses: 26000000, expectedCash: 4000000, total: 133000000 });
   });
 
   it('records an income as a positive row and counts it once for the same key', async () => {
@@ -307,7 +307,7 @@ describe('theDemoStoreAppliesTheRulesOfTheService', () => {
     await movements.register(expense(1000000, 'TRANSFER'), 'key-cccccccc');
     const today = await day.today();
     expect(today.metrics.expectedCash).toBe(5000000);
-    expect(today.metrics.netTransfers).toBe(113000000);
+    expect(today.metrics.netTransfers).toBe(128000000);
   });
 
   it('refuses cash on a day without opening and creates the cash of the day with a transfer', async () => {

@@ -1,6 +1,7 @@
 import { Provider, inject } from '@angular/core';
 import { CashClosure, CashClosuresSource } from '../cash/data/cash-closures-source';
 import { CashHistoryLinkComponent, CashMonthlyLinkComponent } from '../cash/components/cash-consultation-links.component';
+import { CashBaseResult, CashBaseWriter } from '../cash/data/cash-base-writer';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
 import { CashDay, CashDayMetrics, CashDaySource, CashDayStatus, CashMovement, CashOrigin } from '../cash/data/cash-day-source';
 import { CashMovementResult, CashMovementWriter, NewCashMovement } from '../cash/data/cash-movement-writer';
@@ -9,7 +10,7 @@ import { PortalCapabilities } from '../shared/portal-capabilities';
 import { CASH_CONSULTATION_LINKS } from '../shared/portal-slots';
 import { demoFixture } from './demo-fixtures';
 
-/** The demo day of 001- (01 sep 2026, the mockup's demo clock): one base, one income and one refund by transfer, one cash expense (spec section 6). */
+/** The demo day of 001- (01 sep 2026, the mockup's demo clock): one base, one income by transfer and one cash expense, as the mockup draws it (spec section 6). */
 const BUSINESS_DATE = '2026-09-01';
 const BASE = 30000000;
 const WHO = 'Fernanda Robayo';
@@ -23,24 +24,10 @@ const entry = (id: string, time: string, movementType: Type, concept: string, am
 const LEDGER: readonly LedgerEntry[] = [
   entry('cm-1', '09:20', 'INCOME', 'Pago reserva #RES-1901', 129000000, 'TRANSFER'),
   entry('cm-2', '11:45', 'EXPENSE', 'Compra operativa', -25000000, 'CASH'),
-  entry('cm-3', '14:10', 'REFUND', 'Devolución reserva #RES-1902', -15000000, 'TRANSFER'),
   entry('cm-4', '15:30', 'INCOME', 'Pago reserva #RES-1903', 50000000, 'TRANSFER', false),
 ];
 
-/** The closures before the demo day, newest first (spec 001- section 6): 31 ago with an operational opening, 30 ago closed by itself over a validated transfer. */
-const closed = (id: string, businessDate: string, movement: CashMovement, over: Partial<CashClosure>): CashClosure => ({
-  cashClosureId: id, businessDate, closingMode: 'MANUAL', origin: 'OPERATIONAL_OPENING', reopened: false, openingBase: BASE, income: movement.amount, operationalPayments: 0,
-  expenses: 0, refunds: 0, total: BASE + movement.amount, expectedCash: BASE + movement.amount, closedBy: `${WHO} (Administrador del tenant)`,
-  closedAt: `${businessDate}T18:00:00`, reopenings: [], corrections: [], movements: [movement], nonCashMovements: movement.paymentMedium === 'TRANSFER' ? 1 : 0, ...over,
-});
-const income = (id: string, date: string, time: string, concept: string, amount: number, paymentMedium: Medium): CashMovement =>
-  ({ cashMovementId: id, movementType: 'INCOME', concept, amount, paymentMedium, afterClosing: false, registeredAt: `${date}T${time}:00`, registeredBy: WHO });
-const PREVIOUS: readonly CashClosure[] = [
-  closed('cl-0831', '2026-08-31', income('cm-0831', '2026-08-31', '10:15', 'Cobro en efectivo de reservas', 80000000, 'CASH'), {}),
-  closed('cl-0830', '2026-08-30', income('cm-0830', '2026-08-30', '10:30', 'Pago reserva #RES-1899', 20000000, 'TRANSFER'), {
-    closingMode: 'AUTOMATIC', origin: 'AUTOMATIC_CREATION', openingBase: 0, total: 20000000, expectedCash: null, closedBy: 'Cierre automático (Multitour)', closedAt: '2026-08-30T23:59:00' }),
-];
-
+/** The mockup keeps no closure before the demo day (its history starts empty, spec 001- section 6): the only closure is the day itself once it is closed. */
 const magnitude = (movements: readonly CashMovement[], type: Type) =>
   movements.filter((m) => m.movementType === type).reduce((total, m) => total + Math.abs(m.amount), 0);
 const net = (movements: readonly CashMovement[], medium: Medium) =>
@@ -117,17 +104,28 @@ export class DemoCashStore {
     });
   }
 
-  /** The closures newest first: the day of the page once it is closed (a second close creates none), then the seeded ones. */
+  /** The base of an open operative day only; the metrics are resolved again from it (RN-CJ10). No audit trail is kept: the demo has no port for it. */
+  adjustBase(baseCents: number, key: string): CashBaseResult {
+    return this.once(key, (): CashBaseResult => {
+      const state = this.current();
+      if (state.status === 'CLOSED') { return { kind: 'refused', reason: 'DAY_CLOSED' }; }
+      if (state.status !== 'OPEN_OPERATIVE') { return { kind: 'refused', reason: 'NOT_OPERATIVE' }; }
+      state.base = baseCents;
+      return { kind: 'adjusted' };
+    });
+  }
+
+  /** The closures: only the day of the page once it is closed (a second close creates none). */
   closures(): CashClosure[] {
     const state = this.current();
-    if (state.status !== 'CLOSED') { return [...PREVIOUS]; }
+    if (state.status !== 'CLOSED') { return []; }
     const { metrics } = this.read();
     const closing = state.closing ?? { at: `${BUSINESS_DATE}T18:00:00`, by: `${WHO} (Administrador del tenant)` };
     return [{
       cashClosureId: `cl-${BUSINESS_DATE}`, businessDate: BUSINESS_DATE, closingMode: 'MANUAL', origin: state.origin ?? 'OPERATIONAL_OPENING', reopened: false, openingBase: state.base,
       income: metrics.income, operationalPayments: metrics.operationalPayments, expenses: metrics.expenses, refunds: metrics.refunds, total: metrics.total, expectedCash: metrics.expectedCash,
       closedBy: closing.by, closedAt: closing.at, reopenings: [], corrections: [], movements: [...state.movements], nonCashMovements: state.movements.some((m) => m.paymentMedium === 'TRANSFER') ? 1 : 0,
-    }, ...PREVIOUS];
+    }];
   }
 
   private stamp(): string {
@@ -163,6 +161,11 @@ export class DemoCashMovementWriter extends CashMovementWriter {
   override register(movement: NewCashMovement, idempotencyKey: string): Promise<CashMovementResult> { return Promise.resolve(this.store.register(movement, idempotencyKey)); }
 }
 
+export class DemoCashBaseWriter extends CashBaseWriter {
+  constructor(private readonly store: DemoCashStore) { super(); }
+  override adjust(baseCents: number, idempotencyKey: string): Promise<CashBaseResult> { return Promise.resolve(this.store.adjustBase(baseCents, idempotencyKey)); }
+}
+
 export class DemoCashClosingWriter extends CashClosingWriter {
   constructor(private readonly store: DemoCashStore) { super(); }
   override close(idempotencyKey: string): Promise<CashClosingResult> { return Promise.resolve(this.store.close(idempotencyKey)); }
@@ -184,6 +187,7 @@ export function cashDemoProviders(): Provider[] {
     { provide: CASH_CONSULTATION_LINKS, useValue: CashHistoryLinkComponent, multi: true },
     { provide: CASH_CONSULTATION_LINKS, useValue: CashMonthlyLinkComponent, multi: true },
     { provide: CashMovementWriter, useFactory: () => new DemoCashMovementWriter(inject(DemoCashStore)) },
+    { provide: CashBaseWriter, useFactory: () => new DemoCashBaseWriter(inject(DemoCashStore)) },
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
   ];
 }

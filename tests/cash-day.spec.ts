@@ -228,22 +228,22 @@ describe('theDemoStoreResolvesTheDayOfTheSpec', () => {
     expect(day.businessDate).toBe('2026-09-01');
     expect(day.status).toBe('OPEN_OPERATIVE');
     expect(day.openingBase).toBe(30000000);
-    // base + income - payments - expenses - refunds = 300.000 + 1.290.000 - 0 - 250.000 - 150.000
-    expect(day.metrics).toEqual({ income: 129000000, operationalPayments: 0, expenses: 25000000, refunds: 15000000, total: 119000000, expectedCash: 5000000, netTransfers: 114000000 });
+    // base + income - payments - expenses - refunds = 300.000 + 1.290.000 - 0 - 250.000 - 0 (the two movements of the mockup day)
+    expect(day.metrics).toEqual({ income: 129000000, operationalPayments: 0, expenses: 25000000, refunds: 0, total: 134000000, expectedCash: 5000000, netTransfers: 129000000 });
   });
 
   it('holds the pending transfer of RES-1903 without returning it as a row nor counting it', async () => {
     const day = await new DemoCashDaySource().today();
-    expect(day.movements.map((m) => m.concept)).toEqual(['Pago reserva #RES-1901', 'Compra operativa', 'Devolución reserva #RES-1902']);
+    expect(day.movements.map((m) => m.concept)).toEqual(['Pago reserva #RES-1901', 'Compra operativa']);
     expect(JSON.stringify(day)).not.toContain('RES-1903');
     expect(day.metrics.income).toBe(129000000);
   });
 
-  it('counts the refund apart from the expenses', async () => {
+  it('has no refund in the mockup day, so the executed refunds of the month stay at zero', async () => {
     const day = await new DemoCashDaySource().today();
-    expect(day.movements.find((m) => m.movementType === 'REFUND')).toMatchObject({ amount: -15000000, paymentMedium: 'TRANSFER' });
+    expect(day.movements.find((m) => m.movementType === 'REFUND')).toBeUndefined();
     expect(day.metrics.expenses).toBe(25000000);
-    expect(day.metrics.refunds).toBe(15000000);
+    expect(day.metrics.refunds).toBe(0);
   });
 
   it('answers the fixtures: empty-cash-day (no movements, base only) and failing-cash-source (an error)', async () => {

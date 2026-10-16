@@ -120,8 +120,15 @@ describe('cashAreasOfTheConsultation', () => {
 });
 
 describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
-  it('shows 31 ago and 30 ago 2026 of the demo, newest first, with the header and the note of the mockup', async () => {
-    const { host, click, title, text, active } = await shellWith(['TENANT_ADMINISTRATOR'], demo());
+  it('the demo history starts empty as the mockup does, with its empty text', async () => {
+    const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], demo());
+    await click('Historial de caja');
+    expect(text()).toContain('Aún no se han registrado cierres de caja.');
+    expect(host.querySelectorAll('section.csh-history-closure').length).toBe(0);
+  });
+
+  it('shows 31 ago and 30 ago 2026 of the source, newest first, with the header and the note of the mockup', async () => {
+    const { host, click, title, text, active } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([CLOSURE, AUTOMATIC]));
     await click('Historial de caja');
     expect(title()).toBe('Historial de caja');
     expect(flat(host.querySelector('main .csh-cash-eyebrow')?.textContent)).toBe('Control diario');
@@ -136,7 +143,7 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
   });
 
   it('showsTheOriginOfTheCashAndTheExpectedCash: an automatic closure has no expected cash and says who closed it', async () => {
-    const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], demo());
+    const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([CLOSURE, AUTOMATIC]));
     await click('Historial de caja');
     const auto = lines(host, 'Cierre 30 ago 2026');
     expect(auto['Total']).toBe('$200.000');
@@ -171,15 +178,15 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
     expect(text()).not.toMatch(LEGACY_CODES);
   });
 
-  it('aClosureStoredAfterTheDayClosedFromTheFormAppearsFirstAndOnce', async () => {
+  it('theMockupHasNoClosuresUntilTheDayIsClosedFromTheFormAndThenItAppearsOnce', async () => {
     const store = new DemoCashStore({ now: () => Date.parse('2026-09-01T18:05:00'), actor: () => 'Administrador del tenant' });
     const source = new DemoCashClosuresSource(store);
-    expect((await source.list()).map((c) => c.businessDate)).toEqual(['2026-08-31', '2026-08-30']);
+    expect((await source.list()).map((c) => c.businessDate)).toEqual([]);
     store.close('k-1');
     store.close('k-2');
     const list = await source.list();
-    expect(list.map((c) => c.businessDate)).toEqual(['2026-09-01', '2026-08-31', '2026-08-30']);
-    expect(list[0]).toMatchObject({ closingMode: 'MANUAL', expectedCash: peso(50000), total: peso(1190000), closedBy: 'Administrador del tenant' });
+    expect(list.map((c) => c.businessDate)).toEqual(['2026-09-01']);
+    expect(list[0]).toMatchObject({ closingMode: 'MANUAL', expectedCash: peso(50000), total: peso(1340000), closedBy: 'Administrador del tenant' });
   });
 });
 
