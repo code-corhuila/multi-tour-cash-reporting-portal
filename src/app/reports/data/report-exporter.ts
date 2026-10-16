@@ -10,7 +10,11 @@ export abstract class ReportExporter {
   abstract export(format: ReportFormat, data: ReportData): void;
 }
 
-/** Saves a file through a temporary link to a Blob (no network, allowed by `default-src 'self'`). */
+/**
+ * Saves a file through a temporary link to a Blob (no network). CSP impact (pillar 9): the only resource this adds is
+ * `blob:` for a navigation to the download link; the portal needs no `data:` and loads no image or file of its own.
+ * Under `default-src 'self'` the container must allow `blob:` for downloads, or the export fails and shows nothing.
+ */
 export function saveFile(file: ReportFile): void {
   const url = URL.createObjectURL(new Blob([file.content as BlobPart], { type: file.type }));
   const link = document.createElement('a');

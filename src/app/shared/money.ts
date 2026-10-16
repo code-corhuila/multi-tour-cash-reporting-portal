@@ -21,3 +21,13 @@ export function parseMoney(text: string): MoneyParse {
   const minorUnits = Number(whole + fraction.padEnd(MINOR_UNIT_DIGITS, '0'));
   return Number.isSafeInteger(minorUnits) ? { kind: 'valid', minorUnits } : { kind: 'invalid', reason: 'out-of-range' };
 }
+
+/**
+ * Whole pesos to cents for seeded and demo amounts (pillar 2): the two zeros are appended as text and the result is read
+ * as an integer, so no float product is involved. A fractional, negative or unsafe amount is refused, not rounded.
+ */
+export function centsFromPesos(pesos: number): number {
+  const cents = Number.isInteger(pesos) && pesos >= 0 ? Number(`${pesos}00`) : Number.NaN;
+  if (!Number.isSafeInteger(cents)) { throw new RangeError(`Not a whole non-negative amount of pesos in the safe range: ${pesos}`); }
+  return cents;
+}

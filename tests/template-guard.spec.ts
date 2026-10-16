@@ -49,7 +49,8 @@ describe('everyTemplateOfThePortalIsFreeOfLiteralsAndInaccessiblePatterns', () =
   const INTERNAL = /^src\/app\/(cash|reports)\/(components|pages)\//;
 
   it('lets demo/ and every feature import no component or page of another story, only ports, slots and shared/ (pillar 10)', () => {
-    const files = listSourceFiles().filter((f) => f.endsWith('.ts') && f.startsWith('src/app/'));
+    // portal-areas.ts is the composition registry: the one file that names the pages (see the guard above).
+    const files = listSourceFiles().filter((f) => f.endsWith('.ts') && f.startsWith('src/app/') && f !== 'src/app/shared/portal-areas.ts');
     expect(files.filter((f) => f.startsWith('src/app/demo/')).length).toBeGreaterThan(0);
     for (const file of files) {
       const own = featureOf(file);
