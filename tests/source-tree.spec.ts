@@ -7,6 +7,7 @@ import { listSourceFiles } from './source-files';
 const SPECIFIED_TREE = [
   'src/app/app.component.ts',
   'src/app/app.config.ts',
+  'src/app/cash/cash-consultation-slots.ts',
   'src/app/cash/cash-copy.ts',
   'src/app/cash/cash-consultation-copy.ts',
   'src/app/cash/components/cash-base-adjust.component.ts',
@@ -36,6 +37,7 @@ const SPECIFIED_TREE = [
   'src/app/reports/data/report-files.ts',
   'src/app/reports/pages/reports-page.component.ts',
   'src/app/reports/reports-copy.ts',
+  'src/app/reports/reports-monthly-slots.ts',
   'src/app/shared/clock.ts',
   'src/app/shared/focus.ts',
   'src/app/shared/format.ts',
