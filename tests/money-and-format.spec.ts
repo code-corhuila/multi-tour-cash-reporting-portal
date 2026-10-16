@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { formatCop, formatDate, formatDateTime, formatHour } from '../src/app/shared/format';
-import { parseMoney } from '../src/app/shared/money';
+import { centsFromPesos, parseMoney } from '../src/app/shared/money';
 
 // Plan D-06 and AC-CJ.12: "Valor" and "Nueva base diaria" are typed as text and read in cents, never as
 // Number(x) * 100; the screens write pesos, dates and hours as 12-ux-ui section 3 and the mockup do.
@@ -16,6 +16,17 @@ describe('amountTextIsReadInCents', () => {
     ['$300.000', 'format'], ['1e5', 'format'], ['abc', 'format'], ['99999999999999999', 'out-of-range'],
   ])('refuses %j (%s) instead of guessing', (text, reason) => {
     expect(parseMoney(text)).toEqual({ kind: 'invalid', reason });
+  });
+});
+
+// Pillar 2: a seeded whole-peso amount is turned into cents by text, never by a float product.
+describe('wholePesosAreConvertedToCentsWithoutFloatProducts', () => {
+  it.each([[0, 0], [7677400, 767_740_000], [1, 100], [90_071_992_547_409, 9_007_199_254_740_900]])('reads %i pesos as %i cents', (pesos, cents) => {
+    expect(centsFromPesos(pesos)).toBe(cents);
+  });
+
+  it.each([[1.5], [0.07], [-3], [Number.NaN], [Number.MAX_SAFE_INTEGER]])('refuses %s instead of rounding it', (pesos) => {
+    expect(() => centsFromPesos(pesos)).toThrow(RangeError);
   });
 });
 
