@@ -5,6 +5,7 @@ import { CashBaseResult, CashBaseWriter } from '../cash/data/cash-base-writer';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
 import { CashDay, CashDayMetrics, CashDaySource, CashDayStatus, CashMovement, CashOrigin } from '../cash/data/cash-day-source';
 import { CashOpeningResult, CashOpeningWriter } from '../cash/data/cash-opening-writer';
+import { CashReopeningResult, CashReopeningWriter } from '../cash/data/cash-reopening-writer';
 import { CashMovementResult, CashMovementWriter, NewCashMovement } from '../cash/data/cash-movement-writer';
 import { Clock } from '../shared/clock';
 import { PortalCapabilities } from '../shared/portal-capabilities';
@@ -46,7 +47,7 @@ function resolve(movements: readonly CashMovement[], base: number, withCash: boo
   };
 }
 
-interface State { status: CashDayStatus; origin: CashOrigin | null; base: number; openedBy: string | null; movements: CashMovement[]; closing?: { at: string; by: string } }
+interface State { status: CashDayStatus; origin: CashOrigin | null; base: number; openedBy: string | null; movements: CashMovement[]; closing?: { at: string; by: string }; history: CashClosure[] }
 interface Environment { readonly now: () => number; readonly actor: () => string }
 
 /**
@@ -65,8 +66,8 @@ export class DemoCashStore {
 
   private current(): State {
     this.state ??= demoFixture('no-opening-day')
-      ? { status: 'NO_OPENING', origin: null, base: 0, openedBy: null, movements: [] }
-      : { status: demoFixture('closed-day-retry') ? 'CLOSED' : 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', base: BASE, openedBy: `${WHO} (Administrador del tenant)`,
+      ? { status: 'NO_OPENING', origin: null, base: 0, openedBy: null, movements: [], history: [] }
+      : { status: demoFixture('closed-day-retry') ? 'CLOSED' : 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', base: BASE, openedBy: `${WHO} (Administrador del tenant)`, history: [],
         movements: demoFixture('empty-cash-day') ? [] : LEDGER.filter((m) => m.validated).map(({ validated: _validated, ...movement }) => movement) };
     return this.state;
   }
@@ -130,17 +131,36 @@ export class DemoCashStore {
     });
   }
 
-  /** The closures: only the day of the page once it is closed (a second close creates none). */
+  /** The reopening of the closed cash (AC-CJ.15): the closure so far stays in the history, marked as reopened, with the reason, who and when; the same cash opens again. */
+  reopen(reason: string, key: string): CashReopeningResult {
+    return this.once(key, (): CashReopeningResult => {
+      const state = this.current();
+      if (state.status !== 'CLOSED') { return { kind: 'refused', reason: 'NOT_CLOSED' }; }
+      const justification = reason.trim();
+      if (justification === '') { return { kind: 'refused', reason: 'REASON_REQUIRED' }; }
+      const record = { reopenedAt: this.stamp(), reopenedBy: this.env.actor(), reason: justification };
+      state.history.push({ ...this.liveClosure(state.history.length + 1), reopened: true, reopenings: [record] });
+      state.status = 'OPEN_OPERATIVE';
+      state.closing = undefined;
+      return { kind: 'reopened' };
+    });
+  }
+
+  /** The closures, newest first: the one of the closed day as it stands, and each earlier one a reopening left (DP-CJ8: every closing of the day is kept). */
   closures(): CashClosure[] {
     const state = this.current();
-    if (state.status !== 'CLOSED') { return []; }
+    return [...(state.status === 'CLOSED' ? [this.liveClosure(state.history.length + 1)] : []), ...[...state.history].reverse()];
+  }
+
+  private liveClosure(order: number): CashClosure {
+    const state = this.current();
     const { metrics } = this.read();
     const closing = state.closing ?? { at: `${BUSINESS_DATE}T18:00:00`, by: `${WHO} (Administrador del tenant)` };
-    return [{
-      cashClosureId: `cl-${BUSINESS_DATE}`, businessDate: BUSINESS_DATE, closingMode: 'MANUAL', origin: state.origin ?? 'OPERATIONAL_OPENING', reopened: false, openingBase: state.base,
+    return {
+      cashClosureId: order === 1 ? `cl-${BUSINESS_DATE}` : `cl-${BUSINESS_DATE}-${order}`, businessDate: BUSINESS_DATE, closingMode: 'MANUAL', origin: state.origin ?? 'OPERATIONAL_OPENING', reopened: false, openingBase: state.base,
       income: metrics.income, operationalPayments: metrics.operationalPayments, expenses: metrics.expenses, refunds: metrics.refunds, total: metrics.total, expectedCash: metrics.expectedCash,
       closedBy: closing.by, closedAt: closing.at, reopenings: [], corrections: [], movements: [...state.movements], nonCashMovements: state.movements.some((m) => m.paymentMedium === 'TRANSFER') ? 1 : 0,
-    }];
+    };
   }
 
   private stamp(): string {
@@ -186,6 +206,11 @@ export class DemoCashOpeningWriter extends CashOpeningWriter {
   override open(baseCents: number, idempotencyKey: string): Promise<CashOpeningResult> { return Promise.resolve(this.store.open(baseCents, idempotencyKey)); }
 }
 
+export class DemoCashReopeningWriter extends CashReopeningWriter {
+  constructor(private readonly store: DemoCashStore) { super(); }
+  override reopen(reason: string, idempotencyKey: string): Promise<CashReopeningResult> { return Promise.resolve(this.store.reopen(reason, idempotencyKey)); }
+}
+
 export class DemoCashClosingWriter extends CashClosingWriter {
   constructor(private readonly store: DemoCashStore) { super(); }
   override close(idempotencyKey: string): Promise<CashClosingResult> { return Promise.resolve(this.store.close(idempotencyKey)); }
@@ -210,5 +235,6 @@ export function cashDemoProviders(): Provider[] {
     { provide: CashBaseWriter, useFactory: () => new DemoCashBaseWriter(inject(DemoCashStore)) },
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
     { provide: CashOpeningWriter, useFactory: () => new DemoCashOpeningWriter(inject(DemoCashStore)) },
+    { provide: CashReopeningWriter, useFactory: () => new DemoCashReopeningWriter(inject(DemoCashStore)) },
   ];
 }

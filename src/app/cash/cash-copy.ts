@@ -38,6 +38,12 @@ export const CASH_COPY = Object.freeze({
     invalid: 'Registra una base diaria válida.', alreadyOpen: 'La caja de hoy ya tiene apertura operativa.', dayClosed: 'La caja de hoy está cerrada: reábrela con motivo.',
     opened: (base: string) => `Caja abierta con una base de ${base}. Quedó registrada la apertura con su responsable, fecha y hora.`, failed: 'No se pudo completar la solicitud.',
   },
+  reopening: {
+    eyebrow: 'Reapertura', title: 'Reabrir la caja cerrada', label: 'Motivo de la reapertura (obligatorio)', placeholder: 'Describe por qué debe reabrirse la caja', submit: 'Reabrir caja',
+    note: 'Toda corrección o movimiento posterior al cierre que afecte el efectivo físico exige reabrir la caja con motivo y trazabilidad. Las transferencias validadas el mismo día se registran como movimientos no efectivos posteriores al cierre, sin reabrir.',
+    reasonRequired: 'Registra el motivo obligatorio de la reapertura.', notClosed: 'La caja de hoy no está cerrada.',
+    reopened: 'Caja reabierta con motivo. El cierre original se conserva en el historial y la reapertura queda auditada.', failed: 'No se pudo completar la solicitud.',
+  },
   movementsEyebrow: 'Movimientos',
   movementsTitle: 'Registro de la jornada',
   form: {
