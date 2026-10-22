@@ -4,6 +4,7 @@ import { CashHistoryLinkComponent, CashMonthlyLinkComponent } from '../cash/comp
 import { CashBaseResult, CashBaseWriter } from '../cash/data/cash-base-writer';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
 import { CashDay, CashDayMetrics, CashDaySource, CashDayStatus, CashMovement, CashOrigin } from '../cash/data/cash-day-source';
+import { CashOpeningResult, CashOpeningWriter } from '../cash/data/cash-opening-writer';
 import { CashMovementResult, CashMovementWriter, NewCashMovement } from '../cash/data/cash-movement-writer';
 import { Clock } from '../shared/clock';
 import { PortalCapabilities } from '../shared/portal-capabilities';
@@ -55,6 +56,8 @@ interface Environment { readonly now: () => number; readonly actor: () => string
 export class DemoCashStore {
   private state?: State;
   private sequence = 4;
+  /** The last registered base: what the day is proposed to open with. */
+  private parametrized = BASE;
   /** A key answers once: the same key returns the same answer and records nothing more (D-07). */
   private readonly answers = new Map<string, unknown>();
 
@@ -70,7 +73,7 @@ export class DemoCashStore {
 
   read(): CashDay {
     const { status, origin, base, openedBy, movements } = this.current();
-    return { businessDate: BUSINESS_DATE, status, origin, openingBase: base, openedBy, movements: [...movements], metrics: resolve(movements, base, status === 'OPEN_OPERATIVE' || status === 'CLOSED') };
+    return { businessDate: BUSINESS_DATE, status, origin, openingBase: base, openedBy, parametrizedBase: this.parametrized, movements: [...movements], metrics: resolve(movements, base, status === 'OPEN_OPERATIVE' || status === 'CLOSED') };
   }
 
   register(movement: NewCashMovement, key: string): CashMovementResult {
@@ -90,6 +93,18 @@ export class DemoCashStore {
         registeredAt: `${BUSINESS_DATE}T${time}:00`, registeredBy: this.env.actor(),
       });
       return { kind: 'registered', placement };
+    });
+  }
+
+  /** The operational opening (AC-CJ.13): also for the cash a transfer created by itself, which keeps its movements and gains the base. */
+  open(baseCents: number, key: string): CashOpeningResult {
+    return this.once(key, (): CashOpeningResult => {
+      const state = this.current();
+      if (state.status === 'CLOSED') { return { kind: 'refused', reason: 'DAY_CLOSED' }; }
+      if (state.status === 'OPEN_OPERATIVE') { return { kind: 'refused', reason: 'ALREADY_OPEN' }; }
+      Object.assign(state, { status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', base: baseCents, openedBy: this.env.actor() });
+      this.parametrized = baseCents;
+      return { kind: 'opened', baseCents };
     });
   }
 
@@ -166,6 +181,11 @@ export class DemoCashBaseWriter extends CashBaseWriter {
   override adjust(baseCents: number, idempotencyKey: string): Promise<CashBaseResult> { return Promise.resolve(this.store.adjustBase(baseCents, idempotencyKey)); }
 }
 
+export class DemoCashOpeningWriter extends CashOpeningWriter {
+  constructor(private readonly store: DemoCashStore) { super(); }
+  override open(baseCents: number, idempotencyKey: string): Promise<CashOpeningResult> { return Promise.resolve(this.store.open(baseCents, idempotencyKey)); }
+}
+
 export class DemoCashClosingWriter extends CashClosingWriter {
   constructor(private readonly store: DemoCashStore) { super(); }
   override close(idempotencyKey: string): Promise<CashClosingResult> { return Promise.resolve(this.store.close(idempotencyKey)); }
@@ -189,5 +209,6 @@ export function cashDemoProviders(): Provider[] {
     { provide: CashMovementWriter, useFactory: () => new DemoCashMovementWriter(inject(DemoCashStore)) },
     { provide: CashBaseWriter, useFactory: () => new DemoCashBaseWriter(inject(DemoCashStore)) },
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
+    { provide: CashOpeningWriter, useFactory: () => new DemoCashOpeningWriter(inject(DemoCashStore)) },
   ];
 }

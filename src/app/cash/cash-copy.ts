@@ -32,6 +32,12 @@ export const CASH_COPY = Object.freeze({
     cancel: 'Cancelar', save: 'Guardar base diaria', invalid: 'Registra una base diaria válida.', saved: 'Base diaria actualizada correctamente.',
     refused: 'La base solo se ajusta con la caja abierta con apertura operativa.', failed: 'No se pudo completar la solicitud.',
   },
+  opening: {
+    eyebrow: 'Apertura operativa', title: 'Abrir la caja de hoy', label: 'Base del día (efectivo físico)', submit: 'Abrir caja',
+    note: 'La apertura registra la base de efectivo del día. Si la caja se creó automáticamente por una transferencia validada, esta misma caja pasa por la apertura antes de registrar efectivo; nunca existen dos cajas para la misma fecha.',
+    invalid: 'Registra una base diaria válida.', alreadyOpen: 'La caja de hoy ya tiene apertura operativa.', dayClosed: 'La caja de hoy está cerrada: reábrela con motivo.',
+    opened: (base: string) => `Caja abierta con una base de ${base}. Quedó registrada la apertura con su responsable, fecha y hora.`, failed: 'No se pudo completar la solicitud.',
+  },
   movementsEyebrow: 'Movimientos',
   movementsTitle: 'Registro de la jornada',
   form: {
