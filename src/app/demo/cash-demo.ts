@@ -5,6 +5,7 @@ import { CashBaseResult, CashBaseWriter } from '../cash/data/cash-base-writer';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
 import { CashDay, CashDayMetrics, CashDaySource, CashDayStatus, CashMovement, CashOrigin } from '../cash/data/cash-day-source';
 import { CashOpeningResult, CashOpeningWriter } from '../cash/data/cash-opening-writer';
+import { CashPendingClosingResult, CashPendingClosingWriter } from '../cash/data/cash-pending-closing-writer';
 import { CashReopeningResult, CashReopeningWriter } from '../cash/data/cash-reopening-writer';
 import { CashMovementResult, CashMovementWriter, NewCashMovement } from '../cash/data/cash-movement-writer';
 import { Clock } from '../shared/clock';
@@ -47,7 +48,15 @@ function resolve(movements: readonly CashMovement[], base: number, withCash: boo
   };
 }
 
-interface State { status: CashDayStatus; origin: CashOrigin | null; base: number; openedBy: string | null; movements: CashMovement[]; closing?: { at: string; by: string }; history: CashClosure[] }
+/** An earlier day with its opening and no closing (GAP-012); the fixture "pending-closure-day" seeds one. */
+interface PendingCash { businessDate: string; openedBy: string; base: number; movements: CashMovement[] }
+interface State {
+  status: CashDayStatus; origin: CashOrigin | null; base: number; openedBy: string | null; movements: CashMovement[]; closing?: { at: string; by: string }; history: CashClosure[]; pending?: PendingCash;
+}
+const pendingCash = (): PendingCash => ({
+  businessDate: '2026-08-31', openedBy: `${WHO} (Administrador del tenant)`, base: BASE,
+  movements: [{ cashMovementId: 'cm-p1', movementType: 'INCOME', concept: 'Pago en efectivo reserva #RES-1899', amount: 8000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-08-31T10:00:00', registeredBy: WHO }],
+});
 interface Environment { readonly now: () => number; readonly actor: () => string }
 
 /**
@@ -65,16 +74,20 @@ export class DemoCashStore {
   constructor(private readonly env: Environment = { now: () => Date.now(), actor: () => `${WHO} (Administrador del tenant)` }) {}
 
   private current(): State {
-    this.state ??= demoFixture('no-opening-day')
-      ? { status: 'NO_OPENING', origin: null, base: 0, openedBy: null, movements: [], history: [] }
-      : { status: demoFixture('closed-day-retry') ? 'CLOSED' : 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', base: BASE, openedBy: `${WHO} (Administrador del tenant)`, history: [],
-        movements: demoFixture('empty-cash-day') ? [] : LEDGER.filter((m) => m.validated).map(({ validated: _validated, ...movement }) => movement) };
+    this.state ??= {
+      ...(demoFixture('no-opening-day')
+        ? { status: 'NO_OPENING', origin: null, base: 0, openedBy: null, movements: [], history: [] }
+        : { status: demoFixture('closed-day-retry') ? 'CLOSED' : 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', base: BASE, openedBy: `${WHO} (Administrador del tenant)`, history: [],
+          movements: demoFixture('empty-cash-day') ? [] : LEDGER.filter((m) => m.validated).map(({ validated: _validated, ...movement }) => movement) }),
+      ...(demoFixture('pending-closure-day') && { pending: pendingCash() }),
+    } as State;
     return this.state;
   }
 
   read(): CashDay {
-    const { status, origin, base, openedBy, movements } = this.current();
-    return { businessDate: BUSINESS_DATE, status, origin, openingBase: base, openedBy, parametrizedBase: this.parametrized, movements: [...movements], metrics: resolve(movements, base, status === 'OPEN_OPERATIVE' || status === 'CLOSED') };
+    const { status, origin, base, openedBy, movements, pending } = this.current();
+    return { businessDate: BUSINESS_DATE, status, origin, openingBase: base, openedBy, parametrizedBase: this.parametrized, movements: [...movements],
+      ...(pending && { pendingClosure: { businessDate: pending.businessDate, openedBy: pending.openedBy, openingBase: pending.base } }), metrics: resolve(movements, base, status === 'OPEN_OPERATIVE' || status === 'CLOSED') };
   }
 
   register(movement: NewCashMovement, key: string): CashMovementResult {
@@ -139,7 +152,7 @@ export class DemoCashStore {
       const justification = reason.trim();
       if (justification === '') { return { kind: 'refused', reason: 'REASON_REQUIRED' }; }
       const record = { reopenedAt: this.stamp(), reopenedBy: this.env.actor(), reason: justification };
-      state.history.push({ ...this.liveClosure(state.history.length + 1), reopened: true, reopenings: [record] });
+      state.history.push({ ...this.liveClosure(this.todayOrder(state)), reopened: true, reopenings: [record] });
       state.status = 'OPEN_OPERATIVE';
       state.closing = undefined;
       return { kind: 'reopened' };
@@ -149,8 +162,27 @@ export class DemoCashStore {
   /** The closures, newest first: the one of the closed day as it stands, and each earlier one a reopening left (DP-CJ8: every closing of the day is kept). */
   closures(): CashClosure[] {
     const state = this.current();
-    return [...(state.status === 'CLOSED' ? [this.liveClosure(state.history.length + 1)] : []), ...[...state.history].reverse()];
+    return [...(state.status === 'CLOSED' ? [this.liveClosure(this.todayOrder(state))] : []), ...[...state.history].reverse()];
   }
+
+  /** The closing of an earlier day whose cash was never closed (AC-CJ.16): it keeps its own date, today's cash is not touched, and it joins the history. */
+  closePending(key: string): CashPendingClosingResult {
+    return this.once(key, (): CashPendingClosingResult => {
+      const state = this.current();
+      const earlier = state.pending;
+      if (!earlier) { return { kind: 'refused', reason: 'NO_PENDING' }; }
+      const metrics = resolve(earlier.movements, earlier.base, true);
+      state.history.push({
+        cashClosureId: `cl-${earlier.businessDate}`, businessDate: earlier.businessDate, closingMode: 'MANUAL', origin: 'OPERATIONAL_OPENING', reopened: false, openingBase: earlier.base,
+        income: metrics.income, operationalPayments: metrics.operationalPayments, expenses: metrics.expenses, refunds: metrics.refunds, total: metrics.total, expectedCash: metrics.expectedCash,
+        closedBy: this.env.actor(), closedAt: this.stamp(), reopenings: [], corrections: [], movements: [...earlier.movements], nonCashMovements: 0,
+      });
+      state.pending = undefined;
+      return { kind: 'closed', businessDate: earlier.businessDate, expectedCash: metrics.expectedCash };
+    });
+  }
+
+  private todayOrder(state: State): number { return state.history.filter((closure) => closure.businessDate === BUSINESS_DATE).length + 1; }
 
   private liveClosure(order: number): CashClosure {
     const state = this.current();
@@ -211,6 +243,11 @@ export class DemoCashReopeningWriter extends CashReopeningWriter {
   override reopen(reason: string, idempotencyKey: string): Promise<CashReopeningResult> { return Promise.resolve(this.store.reopen(reason, idempotencyKey)); }
 }
 
+export class DemoCashPendingClosingWriter extends CashPendingClosingWriter {
+  constructor(private readonly store: DemoCashStore) { super(); }
+  override closePending(idempotencyKey: string): Promise<CashPendingClosingResult> { return Promise.resolve(this.store.closePending(idempotencyKey)); }
+}
+
 export class DemoCashClosingWriter extends CashClosingWriter {
   constructor(private readonly store: DemoCashStore) { super(); }
   override close(idempotencyKey: string): Promise<CashClosingResult> { return Promise.resolve(this.store.close(idempotencyKey)); }
@@ -236,5 +273,6 @@ export function cashDemoProviders(): Provider[] {
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
     { provide: CashOpeningWriter, useFactory: () => new DemoCashOpeningWriter(inject(DemoCashStore)) },
     { provide: CashReopeningWriter, useFactory: () => new DemoCashReopeningWriter(inject(DemoCashStore)) },
+    { provide: CashPendingClosingWriter, useFactory: () => new DemoCashPendingClosingWriter(inject(DemoCashStore)) },
   ];
 }

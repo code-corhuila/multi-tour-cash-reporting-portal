@@ -43,6 +43,8 @@ export interface CashDay {
   readonly openedBy: string | null;
   /** The base the service proposes to open the day with (the last registered one); the Colaborador opens with exactly this (AC-CJ.13). */
   readonly parametrizedBase?: number;
+  /** An earlier day whose cash had its operational opening and was never closed: it accepts no movement and today's cash is independent (AC-CJ.16, GAP-012). */
+  readonly pendingClosure?: { readonly businessDate: string; readonly openedBy: string; readonly openingBase: number };
   readonly movements: readonly CashMovement[];
   readonly metrics: CashDayMetrics;
 }
