@@ -1,6 +1,6 @@
 import { MonthlyPeriod } from '../../shared/monthly-period';
 import { formatCop, formatPesos } from '../../shared/format';
-import { PdfLine, buildPdf } from '../../shared/minimal-pdf';
+import { PdfBlock, buildPdf } from '../../shared/minimal-pdf';
 import { MONTHLY_PERIOD_COPY } from '../../shared/monthly-period-copy';
 import { REPORTS_COPY } from '../reports-copy';
 import { DailyDashboard } from './daily-dashboard-source';
@@ -53,31 +53,37 @@ const periodOf = (data: ReportData): string => data.periods[0]?.reportedPeriod ?
 
 
 
-/** The lines of the mockup's PDF (`buildOperatorReportsLines`), from the same values. */
-function pdfLines(data: ReportData): PdfLine[] {
+const row = (label: string, value: string): PdfBlock => ({ kind: 'row', label, value });
+
+/**
+ * The PDF of the mockup (`buildOperatorReportsLines`) has these same lines, one per `label: value`. Here each one is a row (the label on the left,
+ * the value on the right) under the title band, so the document reads as a report; the words and the values are the same.
+ */
+function pdfBlocks(data: ReportData): PdfBlock[] {
   const { dashboard: d, summary: s } = data;
-  const lines: PdfLine[] = [
-    { text: 'Reporte operativo y económico - Multitour', size: 14, bold: true }, { text: '' },
-    { text: 'Resumen', size: 12, bold: true },
-    { text: `${t.sales}: ${formatCop(s.confirmedSales)}` }, { text: `${t.income}: ${formatCop(s.periodIncome)}` },
-    { text: `${t.costs}: ${formatCop(s.registeredOperationalCosts)}` }, { text: `${t.cancellations}: ${s.registeredCancellations}` }, { text: '' },
-    { text: 'Dashboard diario (hoy)', size: 12, bold: true },
-    { text: `${t.created}: ${d.createdReservations}` }, { text: `${t.pending}: ${d.pendingPaymentReservations}` }, { text: `${t.confirmed}: ${d.confirmedReservations}` },
-    { text: `${t.withBalance}: ${d.confirmedWithBalance}` }, { text: `${t.cancelled}: ${d.cancelledReservations}` }, { text: `${t.upcoming}: ${d.upcomingServices}` }, { text: '' },
-    { text: 'Reporte mensual', size: 12, bold: true },
+  const blocks: PdfBlock[] = [
+    { kind: 'title', text: 'Reporte operativo y económico', subtitle: `Multitour · Período ${periodOf(data)}` },
+    { kind: 'heading', text: 'Resumen' },
+    row(t.sales, formatCop(s.confirmedSales)), row(t.income, formatCop(s.periodIncome)),
+    row(t.costs, formatCop(s.registeredOperationalCosts)), row(t.cancellations, String(s.registeredCancellations)),
+    { kind: 'heading', text: 'Dashboard diario (hoy)' },
+    row(t.created, String(d.createdReservations)), row(t.pending, String(d.pendingPaymentReservations)), row(t.confirmed, String(d.confirmedReservations)),
+    row(t.withBalance, String(d.confirmedWithBalance)), row(t.cancelled, String(d.cancelledReservations)), row(t.upcoming, String(d.upcomingServices)),
+    { kind: 'heading', text: 'Reporte mensual' },
   ];
-  if (!data.periods[0]) { lines.push({ text: t.monthlyEmpty }); }
-  data.periods.forEach((p) => lines.push(
-    { text: `${m.reported}: ${p.reportedPeriod}`, bold: true }, { text: `${m.income}: ${formatCop(p.periodIncome)}` },
-    { text: `${m.payments}: ${formatCop(p.operationalPayments)}` }, { text: `${m.expenses}: ${formatCop(p.operationalExpenses)}` },
-    { text: `${m.refunds}: ${formatCop(p.executedRefunds)}` }, { text: `${m.total}: ${formatCop(p.consolidatedCashTotal)}` },
-    { text: `${m.cancellations}: ${p.registeredCancellations}` },
-    { text: `${m.costs}: ${p.registeredOperationalCosts > 0 ? formatCop(p.registeredOperationalCosts) : m.noCosts}` }, { text: '' }));
-  return lines;
+  if (!data.periods[0]) { blocks.push({ kind: 'note', text: t.monthlyEmpty }); }
+  // One period is one group of eight lines: it is never split between two pages.
+  data.periods.forEach((p) => blocks.push(
+    { kind: 'keep', height: 24 + 7 * 22 }, { kind: 'subheading', text: `${m.reported}: ${p.reportedPeriod}` }, row(m.income, formatCop(p.periodIncome)),
+    row(m.payments, formatCop(p.operationalPayments)), row(m.expenses, formatCop(p.operationalExpenses)),
+    row(m.refunds, formatCop(p.executedRefunds)), row(m.total, formatCop(p.consolidatedCashTotal)),
+    row(m.cancellations, String(p.registeredCancellations)),
+    row(m.costs, p.registeredOperationalCosts > 0 ? formatCop(p.registeredOperationalCosts) : m.noCosts), { kind: 'space' }));
+  return blocks;
 }
 
-/** The PDF of the report: the lines above on the shared minimal writer. */
-export const buildReportPdf = (data: ReportData): Uint8Array => buildPdf(pdfLines(data));
+/** The PDF of the report: the blocks above on the shared minimal writer, with the name of the report in the footer. */
+export const buildReportPdf = (data: ReportData): Uint8Array => buildPdf(pdfBlocks(data), { footer: 'Multitour · Reporte operativo y económico' });
 
 /** The file of one format, named `reporte-multitour-AAAA-MM` with the period of the report. The CSV starts with the UTF-8 byte order mark, so a spreadsheet reads the accents. */
 export function buildReportFile(format: ReportFormat, data: ReportData, pdf: (data: ReportData) => Uint8Array = buildReportPdf): ReportFile {
