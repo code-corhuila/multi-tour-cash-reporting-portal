@@ -8,13 +8,15 @@ import { CASH_COPY } from '../cash-copy';
 import { CashBaseAdjustComponent } from '../components/cash-base-adjust.component';
 import { CashRegisterComponent } from '../components/cash-register.component';
 import { CashBaseWriter } from '../data/cash-base-writer';
+import { CashOpeningComponent } from '../components/cash-opening.component';
 import { CashDay, CashDaySource } from '../data/cash-day-source';
+import { CashOpeningWriter } from '../data/cash-opening-writer';
 
 /** Screen 14, admin-caja.html, read side: the day as the service resolved it. Nothing is added up here (RN-CJ1, RN-CJ10). */
 @Component({
   selector: 'csh-cash-day',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgComponentOutlet, PageStateComponent, CashBaseAdjustComponent, CashRegisterComponent],
+  imports: [NgComponentOutlet, PageStateComponent, CashBaseAdjustComponent, CashOpeningComponent, CashRegisterComponent],
   template: `
     <section class="csh-cash" aria-labelledby="csh-cash-title">
       <header class="csh-cash-header">
@@ -32,6 +34,8 @@ import { CashDay, CashDaySource } from '../data/cash-day-source';
         @if (s.kind === 'data') {
           @let day = s.items[0];
           @let hero = heroOf(day);
+          @if (openable && (day.status === 'NO_OPENING' || day.status === 'OPEN_AUTOMATIC')) { <csh-cash-opening [day]="day" (answered)="opened($event)" /> }
+          @if (openingNotice(); as message) { <p id="csh-cash-opening-notice" class="csh-cash-feedback csh-cash-feedback-ok" role="status">{{ message }}</p> }
           @if (adjustable) { <csh-cash-base-adjust [day]="day" [(open)]="adjusting" (answered)="refresh()" /> }
           <section class="csh-cash-hero">
             <div>
@@ -70,6 +74,14 @@ export class CashDayPageComponent {
   /** RN-CJ6: only who changes the base sees the action, in a build that has the writer; the service refuses regardless. */
   protected readonly adjustable = inject(PortalCapabilities).canChangeBase() && inject(CashBaseWriter, { optional: true }) !== null;
   protected readonly adjusting = signal(false);
+  /** AC-CJ.13: who operates the cash sees the opening, in a build that has the writer; the service refuses regardless. */
+  protected readonly openable = inject(PortalCapabilities).canOperateCash() && inject(CashOpeningWriter, { optional: true }) !== null;
+  protected readonly openingNotice = signal('');
+
+  protected opened(message: string): void {
+    this.openingNotice.set(message);
+    this.refresh();
+  }
   protected readonly load = new PageLoad<CashDay>();
 
   constructor() {

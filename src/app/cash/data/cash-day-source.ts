@@ -41,6 +41,8 @@ export interface CashDay {
   /** Cents of physical cash; 0 while the day has no opening. */
   readonly openingBase: number;
   readonly openedBy: string | null;
+  /** The base the service proposes to open the day with (the last registered one); the Colaborador opens with exactly this (AC-CJ.13). */
+  readonly parametrizedBase?: number;
   readonly movements: readonly CashMovement[];
   readonly metrics: CashDayMetrics;
 }
