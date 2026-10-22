@@ -72,7 +72,9 @@ describe('exportedPdfIsAValidDocumentWithTheSameLines', () => {
     expect(pdf).toContain('/BaseFont /Helvetica-Bold');
   });
   it('carries the lines of the report with accents as WinAnsi bytes', () => {
-    ['(Reporte operativo y econ\xF3mico - Multitour)', '(Ventas confirmadas: $4.150.000)', '(Pr\xF3ximas a ejecutar: 4)', '(Total consolidado de caja del per\xEDodo: $2.580.000)', '(Per\xEDodo reportado: 2026-08)']
+    // Each line of the mockup is drawn as a label on the left and its value on the right (report-pdf-layout.spec.ts); the words are the same.
+    ['(Reporte operativo y econ\xF3mico) Tj', '(Multitour \xB7 Per\xEDodo 2026-09) Tj', '(Ventas confirmadas) Tj', '($4.150.000) Tj', '(Pr\xF3ximas a ejecutar) Tj', '(4) Tj',
+      '(Total consolidado de caja del per\xEDodo) Tj', '($2.580.000) Tj', '(Per\xEDodo reportado: 2026-08) Tj']
       .forEach((line) => expect(pdf).toContain(line));
   });
   it('escapes parentheses and backslashes and adds pages when the lines do not fit', () => {
