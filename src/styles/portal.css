@@ -129,7 +129,9 @@
 .csh-root .csh-cash-field { display: grid; align-content: start; gap: 6px; }
 .csh-root .csh-cash-field label { color: var(--csh-soft); font-size: 0.78rem; font-weight: 600; }
 .csh-root .csh-cash-field select, .csh-root .csh-cash-field input { width: 100%; min-height: 42px; padding: 0 12px; border: 1px solid var(--csh-line-strong); border-radius: var(--csh-radius-control); background: var(--csh-surface); color: var(--csh-text); font: inherit; font-size: 0.88rem; }
+.csh-root .csh-cash-field textarea { width: 100%; padding: 10px 12px; border: 1px solid var(--csh-line-strong); border-radius: var(--csh-radius-control); background: var(--csh-surface); color: var(--csh-text); font: inherit; font-size: 0.9rem; line-height: 1.45; resize: vertical; }
 .csh-root .csh-cash-field [aria-invalid="true"] { border-color: var(--csh-error); }
+.csh-root .csh-cash-correction { margin: 16px 0 0; }
 .csh-root .csh-cash-field-error { margin: 0; color: var(--csh-error); font-size: 0.75rem; line-height: 1.35; }
 .csh-root .csh-cash-feedback { margin: 0; padding: 10px 12px; border-radius: var(--csh-radius-control); background: var(--csh-muted); color: var(--csh-soft); font-size: 0.8rem; line-height: 1.45; }
 .csh-root .csh-cash-feedback-ok { background: var(--csh-success-soft); color: var(--csh-success); }
