@@ -25,7 +25,7 @@ describe('portalCapabilitiesOfTheCash', () => {
   it('lets the Colaborador operativo operate and correct only with Gestionar caja, and never change the base (AC9, G-PERM)', () => {
     expect(answers(PortalCapabilities.for('OPERATIONAL_COLLABORATOR'))).toEqual(reader('Colaborador operativo'));
     expect(answers(PortalCapabilities.for('OPERATIONAL_COLLABORATOR', true))).toEqual(
-      { ...reader('Colaborador operativo'), operateCash: true, correctClosure: true });
+      { ...reader('Colaborador operativo'), operateCash: true });
   });
 
   it.each([['MANAGER', 'Gerente'], ['ACCOUNTANT', 'Contador'], ['ANALYST', 'Analista']])(

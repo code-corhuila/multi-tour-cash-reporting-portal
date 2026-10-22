@@ -3,6 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CashDay, CashDaySource } from '../src/app/cash/data/cash-day-source';
 import { CashClosure, CashClosuresSource } from '../src/app/cash/data/cash-closures-source';
+import { CashCorrectionWriter } from '../src/app/cash/data/cash-correction-writer';
 import { MonthlyPeriod, MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
 import { DemoCashClosuresSource, DemoCashStore } from '../src/app/demo/cash-demo';
 import { PORTAL_AREAS } from '../src/app/shared/portal-areas';
@@ -69,6 +70,8 @@ async function shellWith(roles: string[], providers: Provider[]) {
 const fakes = (closures: () => Promise<readonly CashClosure[]>, periods: () => Promise<readonly MonthlyPeriod[]>): Provider[] => [
   { provide: CashDaySource, useValue: new Day() },
   { provide: CashClosuresSource, useValue: new Closures(closures) },
+  // The Administrador sees the correction form under a manual closure (T-07); these tests only read, so nothing is ever registered.
+  { provide: CashCorrectionWriter, useValue: { register: () => Promise.resolve({ kind: 'registered' }) } },
   { provide: MonthlyReportSource, useValue: new Monthly(periods) },
   { provide: CASH_CONSULTATION_LINKS, useValue: CashHistoryLinkComponent, multi: true },
   { provide: CASH_CONSULTATION_LINKS, useValue: CashMonthlyLinkComponent, multi: true },
@@ -191,12 +194,23 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
 });
 
 describe('historyIsReadOnly', () => {
-  it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('offers %s only to read: no form, no field and a single "Volver a caja"', async (role) => {
+  it.each(['OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('offers %s only to read: no form, no field and a single "Volver a caja"', async (role) => {
     const { host, click, title } = await shellWith([role], withClosures([CLOSURE, AUTOMATIC]));
     await click('Historial de caja');
     expect(title()).toBe('Historial de caja');
     expect(host.querySelectorAll('main form, main input, main textarea, main select').length).toBe(0);
     expect(Array.from(host.querySelectorAll('main button')).map((b) => flat(b.textContent))).toEqual(['Volver a caja']);
+  });
+
+  // T-07: the Administrador registers the correction (mockup `app.js` 7232): one form under the manual closure, none under the automatic one.
+  it('offers TENANT_ADMINISTRATOR the correction form of the manual closure and nothing else to write', async () => {
+    const { host, click, title } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([CLOSURE, AUTOMATIC]));
+    await click('Historial de caja');
+    expect(title()).toBe('Historial de caja');
+    expect(host.querySelectorAll('main form')).toHaveLength(1);
+    expect(host.querySelectorAll('main textarea')).toHaveLength(1);
+    expect(host.querySelectorAll('main input, main select')).toHaveLength(0);
+    expect(Array.from(host.querySelectorAll('main button')).map((b) => flat(b.textContent))).toEqual(['Volver a caja', 'Registrar corrección']);
   });
 
   it.each([['a Cliente final', ['FINAL_CUSTOMER']], ['an unknown role', ['SUPPLIER']], ['no role', []]])('offers nothing to %s', async (_who, roles) => {
