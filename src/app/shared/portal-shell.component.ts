@@ -1,10 +1,10 @@
 import { NgComponentOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, ElementRef, Injector, afterNextRender, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, ElementRef, Injector, afterNextRender, computed, effect, inject } from '@angular/core';
 import { focusHeading } from './focus';
 import { SHELL_COPY } from './shell-copy';
 import { PORTAL_AREA_LIST } from './portal-areas';
 import { PortalCapabilities } from './portal-capabilities';
-import { CONTAINER_CHROME } from './portal-slots';
+import { CONTAINER_AREA_REPORTER, CONTAINER_CHROME } from './portal-slots';
 import { PORTAL_INITIAL_PARAMS, PortalNavigation } from './portal-navigation';
 
 /**
@@ -60,6 +60,9 @@ export class PortalShellComponent {
   constructor() {
     this.navigation.register(this.menu.length ? this.areas.map((area) => area.key) : [], () =>
       afterNextRender(() => focusHeading(this.host.querySelector('main') ?? this.host), { injector: this.injector }));
+    // The container draws the sidebar: it marks the entry the portal reports, also when a button of one area opens another ("Ir a caja" of Reportes).
+    const report = inject(CONTAINER_AREA_REPORTER);
+    if (report) { effect(() => { const entry = this.active(); if (entry) { report(entry); } }); }
     const { area, ...params } = inject(PORTAL_INITIAL_PARAMS);
     if (area) { this.navigation.start(area, params); }
   }

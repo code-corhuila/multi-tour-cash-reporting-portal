@@ -5,7 +5,7 @@ import { MountProps, PortalApiClient } from './app/shell-contract';
 import { sourceProviders } from './app/sources';
 import { PortalActor } from './app/shared/portal-capabilities';
 import { PORTAL_INITIAL_PARAMS } from './app/shared/portal-navigation';
-import { CONTAINER_CHROME, CONTAINER_NAVIGATION } from './app/shared/portal-slots';
+import { CONTAINER_AREA_REPORTER, CONTAINER_CHROME, CONTAINER_NAVIGATION } from './app/shared/portal-slots';
 
 /** Portals mounted now; the stylesheet leaves with the last one. */
 let mounted = 0;
@@ -47,6 +47,7 @@ export function mountWith(element: HTMLElement, props: MountProps, sources: (cli
       { provide: CONTAINER_CHROME, useValue: props.chrome === 'container' },
       { provide: PORTAL_INITIAL_PARAMS, useValue: props.initialParams ?? {} },
       ...(props.navigate ? [{ provide: CONTAINER_NAVIGATION, useValue: props.navigate }] : []),
+      ...(props.chrome === 'container' && props.onAreaChange ? [{ provide: CONTAINER_AREA_REPORTER, useValue: props.onAreaChange }] : []),
       ...sources(props.apiClient),
     ],
   }).then((created) => {
