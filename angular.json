@@ -30,14 +30,21 @@
             "styles": []
           },
           "configurations": {
-            "production": { "outputHashing": "all" },
+            "production": {
+              "outputHashing": "all",
+              "budgets": [
+                { "type": "initial", "maximumWarning": "70kB", "maximumError": "100kB" },
+                { "type": "anyComponentStyle", "maximumWarning": "4kB", "maximumError": "8kB" }
+              ]
+            },
             "development": { "optimization": false, "extractLicenses": false, "sourceMap": true }
           },
           "defaultConfiguration": "production"
         },
         "module": {
           "builder": "@angular/build:application",
-          "options": { "browser": "src/mount-entry.ts", "index": false, "outputPath": "dist/module", "tsConfig": "tsconfig.module.json", "outputHashing": "none", "styles": [] },
+          "options": { "browser": "src/mount-entry.ts", "index": false, "outputPath": "dist/module", "tsConfig": "tsconfig.module.json", "outputHashing": "none", "styles": [],
+            "budgets": [{ "type": "initial", "maximumWarning": "230kB", "maximumError": "280kB" }] },
           "configurations": {
             "demo": { "fileReplacements": [{ "replace": "src/app/sources.ts", "with": "src/app/sources.demo.ts" }] }
           }

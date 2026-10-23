@@ -1,7 +1,8 @@
 import { Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { MonthlyPeriod, MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../src/app/shared/monthly-period';
 import { DailyDashboard, DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
 import { PeriodSummary, PeriodSummarySource } from '../src/app/reports/data/period-summary-source';
 import { BrowserReportExporter, ReportExporter } from '../src/app/reports/data/report-exporter';
