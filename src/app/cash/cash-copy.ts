@@ -44,6 +44,12 @@ export const CASH_COPY = Object.freeze({
     reasonRequired: 'Registra el motivo obligatorio de la reapertura.', notClosed: 'La caja de hoy no está cerrada.',
     reopened: 'Caja reabierta con motivo. El cierre original se conserva en el historial y la reapertura queda auditada.', failed: 'No se pudo completar la solicitud.',
   },
+  pending: {
+    eyebrow: 'Caja Pendiente de cierre', title: 'Hay una caja anterior sin cerrar', submit: 'Cerrar caja pendiente',
+    text: (date: string) => `La caja del ${date} tuvo apertura operativa y no se cerró al finalizar su día: quedó con la marca Pendiente de cierre. No acepta movimientos nuevos ni tiene efectivo final calculado por el sistema; la caja de hoy opera de forma independiente.`,
+    closed: (date: string, expectedCash: string) => `Caja del ${date} cerrada formalmente. Efectivo esperado: ${expectedCash}.`,
+    noPending: 'No hay una caja anterior pendiente de cierre.', failed: 'No se pudo completar la solicitud.',
+  },
   movementsEyebrow: 'Movimientos',
   movementsTitle: 'Registro de la jornada',
   form: {
