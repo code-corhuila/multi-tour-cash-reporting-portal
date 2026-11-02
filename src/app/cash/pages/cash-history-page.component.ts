@@ -1,9 +1,11 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
 import { formatCop, formatDate, formatDateTime, formatHour } from '../../shared/format';
 import { PageLoad, PageStateComponent } from '../../shared/page-state';
+import { PortalCapabilities } from '../../shared/portal-capabilities';
 import { PortalNavigation } from '../../shared/portal-navigation';
 import { CASH_COPY } from '../cash-copy';
 import { CASH_CONSULTATION_COPY, originOf } from '../cash-consultation-copy';
+import { CashCorrectionComponent } from '../components/cash-correction.component';
 import { CashClosure, CashClosuresSource } from '../data/cash-closures-source';
 import { CashMovement } from '../data/cash-day-source';
 
@@ -11,7 +13,7 @@ import { CashMovement } from '../data/cash-day-source';
 @Component({
   selector: 'csh-cash-history',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [PageStateComponent],
+  imports: [PageStateComponent, CashCorrectionComponent],
   template: `
     <section class="csh-cash" aria-labelledby="csh-history-title">
       <header class="csh-cash-header csh-history-header">
@@ -61,6 +63,7 @@ import { CashMovement } from '../data/cash-day-source';
                   <tbody>@for (c of closure.corrections; track c) { <tr><td>{{ dateTime(c.appliedAt) }}</td><td>{{ c.appliedBy }}</td><td>{{ c.justification }}</td></tr> }</tbody>
                 </table></div>
               } @else { <p class="csh-history-note">{{ t.corrections.none }}</p> }
+              @if (canCorrect && closure.closingMode !== 'AUTOMATIC') { <csh-cash-correction [closureId]="closure.cashClosureId" (registered)="refresh()" /> }
             </section>
           }
         }
@@ -75,6 +78,8 @@ export class CashHistoryPageComponent {
   protected readonly movementColumns = CASH_COPY.columns.slice(0, 5);
   protected readonly navigation = inject(PortalNavigation);
   private readonly source = inject(CashClosuresSource);
+  /** T-07, T-08: the correction form is the Administrador's, and never on an automatic closure. */
+  protected readonly canCorrect = inject(PortalCapabilities).canCorrectClosure();
   protected readonly load = new PageLoad<CashClosure>();
   protected readonly money = formatCop;
   protected readonly date = formatDate;
@@ -85,6 +90,9 @@ export class CashHistoryPageComponent {
     inject(DestroyRef).onDestroy(() => this.load.stop());
     this.load.run(() => this.source.list());
   }
+
+  /** A correction was kept: read the closures again without tearing the screen down. */
+  protected refresh(): void { this.load.refresh(() => this.source.list()); }
 
   protected badge(closure: CashClosure): string {
     return closure.reopened ? this.t.badge.reopened : closure.closingMode === 'AUTOMATIC' ? this.t.badge.automatic : this.t.badge.closed;

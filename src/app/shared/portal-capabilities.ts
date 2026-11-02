@@ -64,8 +64,8 @@ export class PortalCapabilities {
   canReadCash(): boolean { return this.row.readCash; }
   canOperateCash(): boolean { return this.row.operateCash === 'always' || (this.row.operateCash === 'if-granted' && this.mayManageCash); }
   canChangeBase(): boolean { return this.row.changeBase; }
-  /** DP-CJ3: the correction after a closing is the reopening record, so it follows the operate row. */
-  canCorrectClosure(): boolean { return this.canOperateCash(); }
+  /** T-07 and T-08: "Registrar corrección" of the history is for the Administrador only, as the mockup gives it (never a Colaborador, with or without Gestionar caja). DP-CJ3 stays open. */
+  canCorrectClosure(): boolean { return this.row.changeBase; }
   /** HU-CSH-002: the area Reportes and its dashboard; the screen has no action to ask for. */
   canReadReports(): boolean { return this.row.readReports; }
   /** The target of "Ir a reservas" is the commercial portal: its row is read by the five internal roles. */
