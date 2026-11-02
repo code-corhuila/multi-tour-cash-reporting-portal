@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { MonthlyPeriod } from '../../cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../../shared/monthly-period';
 import { PeriodSummary } from './period-summary-source';
 
 /**

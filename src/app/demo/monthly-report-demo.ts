@@ -1,11 +1,11 @@
 import { Provider, inject } from '@angular/core';
 import { CashMovement as CashLedgerMovement } from '../cash/data/cash-day-source';
 import { DemoCashStore } from './cash-demo';
-import { MonthlyPeriod, MonthlyReportSource } from '../cash/data/monthly-report-source';
+import { MonthlyReportSource } from '../cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../shared/monthly-period';
+import { reportsMonthlySlotProviders } from '../reports/reports-monthly-slots';
 import { PeriodSummary, PeriodSummarySource } from '../reports/data/period-summary-source';
-import { PeriodSummaryComponent } from '../reports/components/period-summary.component';
-import { MonthlyReportComponent } from '../reports/components/monthly-report.component';
-import { REPORTS_MONTHLY_BLOCKS } from '../shared/portal-slots';
+import { centsFromPesos } from '../shared/money';
 import { demoFixture } from './demo-fixtures';
 
 /** A movement of a closed day, in cents. `base` is the opening cash of the day: it is not income and never enters a period (GAP-011). */
@@ -36,7 +36,7 @@ export function consolidate(movements: readonly CashMovement[], registered: Regi
   });
 }
 
-const peso = (amount: number) => amount * 100;
+const peso = centsFromPesos;
 const KINDS: Readonly<Record<CashLedgerMovement['movementType'], CashMovement['kind']>> = {
   INCOME: 'income', OPERATIONAL_PAYMENT: 'operational-payment', EXPENSE: 'expense', REFUND: 'refund',
 };
@@ -90,7 +90,6 @@ export function monthlyReportDemoProviders(): Provider[] {
   return [
     { provide: MonthlyReportSource, useFactory: monthly },
     { provide: PeriodSummarySource, useFactory: () => new DemoPeriodSummarySource(inject(MonthlyReportSource)) },
-    { provide: REPORTS_MONTHLY_BLOCKS, useValue: PeriodSummaryComponent, multi: true },
-    { provide: REPORTS_MONTHLY_BLOCKS, useValue: MonthlyReportComponent, multi: true },
+    ...reportsMonthlySlotProviders(),
   ];
 }
