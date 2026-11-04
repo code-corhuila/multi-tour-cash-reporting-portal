@@ -96,12 +96,14 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(calls).toEqual([]);
     });
 
-    it('offers the tenant administrator only "Caja": the day from the service with the base and movement forms, no Reportes', async () => {
+    it('offers the tenant administrator only "Caja": the day from the service with the base action and no movement form yet, no Reportes', async () => {
       mountAs(['TENANT_ADMINISTRATOR']);
       await vi.waitFor(() => expect(host.querySelector('.csh-cash-hero')).toBeTruthy());
       expect(Array.from(host.querySelectorAll('.csh-nav button')).map((b) => flat(b.textContent))).toEqual(['Caja']);
       expect(flat(host.querySelector('.csh-cash-hero')?.textContent)).toContain('Efectivo esperado al cierre: $300.000.');
-      expect(host.querySelectorAll('form').length).toBeGreaterThan(0);
+      // The movement form needs the closing writer too (`operable` of the register panel): it appears with the closing branch.
+      expect(host.querySelectorAll('form, input, select, textarea').length).toBe(0);
+      expect(flat(host.querySelector('.csh-cash-header button')?.textContent)).toBe('Ajustar base diaria');
       const links = Array.from(host.querySelectorAll('.csh-cash-links button')).map((b) => flat(b.textContent));
       expect(links).toEqual(['Historial de caja']);
     });
