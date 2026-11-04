@@ -48,17 +48,17 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
     expect(code).not.toMatch(/\bDemo[A-Z]\w*|\w+DemoProviders\b/);
   });
 
-  it('the production sources register the read ports and the writers of the opening, the base and the movements, and call the container client only when a screen asks', () => {
+  it('the production sources register the read ports and the writers of the opening, the base, the movements, the closing, the pending closing and the reopening, and call the container client only when a screen asks', () => {
     const { client, calls } = ROUTES();
     const providers = sourceProviders(client) as { provide: unknown }[];
     // The panel "Consulta" of the day is composed by the build too (plan D-02): the monthly link draws itself only where its area is offered.
-    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
+    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
     expect(calls).toEqual([]);
   });
 
-  it('registers no closing, reopening, pending closing or correction writer, no dashboard and no monthly port yet (next branches)', () => {
+  it('registers no correction writer, no dashboard and no monthly port yet (next branches)', () => {
     const tokens = (sourceProviders(ROUTES().client) as { provide: unknown }[]).map((provider) => provider.provide);
-    for (const absent of [CashClosingWriter, CashReopeningWriter, CashPendingClosingWriter, CashCorrectionWriter, MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
+    for (const absent of [CashCorrectionWriter, MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
   });
 
   it('the demo build is the only one that swaps the sources, through the module:demo configuration', () => {
@@ -96,16 +96,88 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(calls).toEqual([]);
     });
 
-    it('offers the tenant administrator only "Caja": the day from the service with the base action and no movement form yet, no Reportes', async () => {
+    it('offers the tenant administrator only "Caja": the day from the service with the base action and the movement form and closing, no Reportes', async () => {
       mountAs(['TENANT_ADMINISTRATOR']);
       await vi.waitFor(() => expect(host.querySelector('.csh-cash-hero')).toBeTruthy());
       expect(Array.from(host.querySelectorAll('.csh-nav button')).map((b) => flat(b.textContent))).toEqual(['Caja']);
       expect(flat(host.querySelector('.csh-cash-hero')?.textContent)).toContain('Efectivo esperado al cierre: $300.000.');
-      // The movement form needs the closing writer too (`operable` of the register panel): it appears with the closing branch.
-      expect(host.querySelectorAll('form, input, select, textarea').length).toBe(0);
+      // The movement form needs the closing writer too (`operable` of the register panel): the closing branch registers it.
+      expect(host.querySelectorAll('.csh-cash-register form').length).toBe(1);
+      expect(flat(host.querySelector('.csh-cash-register-head button')?.textContent)).toBe('Cerrar caja');
+      expect(host.querySelector('csh-cash-reopening')).toBeNull();
       expect(flat(host.querySelector('.csh-cash-header button')?.textContent)).toBe('Ajustar base diaria');
       const links = Array.from(host.querySelectorAll('.csh-cash-links button')).map((b) => flat(b.textContent));
       expect(links).toEqual(['Historial de caja']);
+    });
+
+    it('closes the day from the screen through the container client: POST close with its Idempotency-Key, then the day is read again', async () => {
+      const closed = { ...DAY, status: 'CLOSED', expectedCashCents: 30000000 };
+      const { client, calls } = fakeCashClient({
+        [`${BASE}/cash-days/current`]: [{ ok: DAY }, { ok: DAY }, { ok: closed }],
+        [`${BASE}/cash-days/2026-09-01/movements?page=1&limit=100`]: { ok: page([]) },
+        [`${BASE}/cash-days?pendingClosure=true&page=1&limit=1`]: { ok: page([]) },
+        [`${BASE}/cash-days/2026-09-01/close`]: { ok: closed },
+      });
+      mountAs(['TENANT_ADMINISTRATOR'], client);
+      await vi.waitFor(() => expect(host.querySelector('.csh-cash-register-head button')).toBeTruthy());
+      (host.querySelector('.csh-cash-register-head button') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(flat(host.querySelector('.csh-cash-register .csh-cash-feedback')?.textContent)).toContain('Caja cerrada correctamente. Efectivo esperado: $300.000.'));
+      const close = calls.find((call) => call.path.endsWith('/close'));
+      expect(close?.init?.method).toBe('POST');
+      expect(close?.init?.headers?.['Idempotency-Key']).toMatch(/^[\w-]{8,128}$/);
+      expect(JSON.stringify(calls).toLowerCase()).not.toContain('tenant');
+    });
+
+    it('shows the generic message when the service refuses the closing with a 403', async () => {
+      const { client } = fakeCashClient({
+        [`${BASE}/cash-days/current`]: { ok: DAY }, [`${BASE}/cash-days/2026-09-01/movements?page=1&limit=100`]: { ok: page([]) },
+        [`${BASE}/cash-days?pendingClosure=true&page=1&limit=1`]: { ok: page([]) },
+        [`${BASE}/cash-days/2026-09-01/close`]: { fail: { status: 403, code: 'FORBIDDEN', message: 'x', traceId: 't' } },
+      });
+      mountAs(['TENANT_ADMINISTRATOR'], client);
+      await vi.waitFor(() => expect(host.querySelector('.csh-cash-register-head button')).toBeTruthy());
+      (host.querySelector('.csh-cash-register-head button') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(flat(host.querySelector('.csh-cash-register .csh-cash-feedback')?.textContent)).toBe('No se pudo completar la solicitud.'));
+    });
+
+    it('draws the reopening form on a closed day and sends the reason with POST reopen', async () => {
+      const closed = { ...DAY, status: 'CLOSED' };
+      const { client, calls } = fakeCashClient({
+        [`${BASE}/cash-days/current`]: [{ ok: closed }, { ok: closed }, { ok: closed }, { ok: DAY }],
+        [`${BASE}/cash-days/2026-09-01/movements?page=1&limit=100`]: { ok: page([]) },
+        [`${BASE}/cash-days?pendingClosure=true&page=1&limit=1`]: { ok: page([]) },
+        [`${BASE}/cash-days/2026-09-01/reopen`]: { ok: DAY },
+      });
+      mountAs(['TENANT_ADMINISTRATOR'], client);
+      await vi.waitFor(() => expect(host.querySelector('csh-cash-reopening textarea')).toBeTruthy());
+      const area = host.querySelector('csh-cash-reopening textarea') as HTMLTextAreaElement;
+      area.value = 'Se omitió un pago';
+      area.dispatchEvent(new Event('input'));
+      (host.querySelector('csh-cash-reopening button[type="submit"]') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(flat(host.querySelector('#csh-cash-reopening-notice')?.textContent)).toContain('Caja reabierta con motivo.'));
+      const reopen = calls.find((call) => call.path.endsWith('/reopen'));
+      expect(reopen?.init).toMatchObject({ method: 'POST', body: { reason: 'Se omitió un pago' } });
+    });
+
+    it('closes the pending day of an earlier date from the screen', async () => {
+      const earlier = { ...DAY, businessDate: '2026-08-31', pendingClosure: true };
+      const { client, calls } = fakeCashClient({
+        [`${BASE}/cash-days/current`]: { ok: DAY }, [`${BASE}/cash-days/2026-09-01/movements?page=1&limit=100`]: { ok: page([]) },
+        [`${BASE}/cash-days?pendingClosure=true&page=1&limit=1`]: [{ ok: page([earlier]) }, { ok: page([earlier]) }, { ok: page([]) }],
+        [`${BASE}/cash-days/2026-08-31/close`]: { ok: { ...earlier, pendingClosure: false, status: 'CLOSED' } },
+      });
+      mountAs(['TENANT_ADMINISTRATOR'], client);
+      await vi.waitFor(() => expect(host.querySelector('csh-cash-pending-closure button')).toBeTruthy());
+      (host.querySelector('csh-cash-pending-closure button') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(flat(host.querySelector('#csh-cash-pending-notice')?.textContent)).toContain('cerrada formalmente'));
+      expect(calls.find((call) => call.path === `${BASE}/cash-days/2026-08-31/close`)?.init?.method).toBe('POST');
+    });
+
+    it('a role that only reads gets neither the form nor the closing', async () => {
+      mountAs(['MANAGER']);
+      await vi.waitFor(() => expect(host.querySelector('.csh-cash-hero')).toBeTruthy());
+      expect(host.querySelectorAll('form, textarea').length).toBe(0);
+      expect(host.querySelector('.csh-cash-register-head button')).toBeNull();
     });
 
     it('opens the history from the day with the closures of the service and no correction form, because its writer is not registered', async () => {

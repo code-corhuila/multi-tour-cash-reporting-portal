@@ -7,16 +7,16 @@ import { cashDayPath, currentCashDayPath } from './api-paths';
 import { CashDayDto, CashMovementDto } from './cash-api-mappers';
 
 /** The tenant's today and whether that day already has a cash: the service decides both (the path of a write carries the date, never a tenant). */
-async function today(client: PortalApiClient): Promise<CashDayDto> {
+export async function today(client: PortalApiClient): Promise<CashDayDto> {
   return client.request<CashDayDto>(currentCashDayPath());
 }
 
-/** The domain code of a rule refusal (422): `{status, code}` of the container error; any other failure reaches the screen as it came. */
+/** The domain code of a refusal the portal can know (400, 404 or 422 of the container error `{status, code}`); the map of each write decides which codes it knows, any other failure reaches the screen as it came. */
 const ruleCode = (error: unknown): string | undefined =>
-  (error as { status?: number } | null)?.status === 422 ? (error as { code?: string }).code : undefined;
+  [400, 404, 422].includes((error as { status?: number } | null)?.status ?? 0) ? (error as { code?: string }).code : undefined;
 
 /** Runs a write: a refusal the portal knows becomes a domain result, any other rejection (403, 400, PENDING_CLOSURE, network) is rethrown untouched. */
-async function write<T, R>(send: () => Promise<T>, done: (answer: T) => R, refuse: Readonly<Record<string, R>>): Promise<R> {
+export async function write<T, R>(send: () => Promise<T>, done: (answer: T) => R, refuse: Readonly<Record<string, R>>): Promise<R> {
   try {
     return done(await send());
   } catch (error) {
