@@ -17,6 +17,8 @@ export interface CashMovement {
   readonly afterClosing: boolean;
   readonly registeredAt: string;
   readonly registeredBy: string;
+  /** The reservation a REFUND returns money for (AC-CJ.10); absent on every other type. */
+  readonly reservationId?: string;
 }
 
 /** Everything the screen shows as a number, resolved by the service (RN-CJ1, RN-CJ10); cents, the five outflow and inflow figures unsigned. */

@@ -28,7 +28,7 @@ describe('bundleBudgetsAreDeclared', () => {
   it('records the measured sizes in the README', () => {
     const readme = readFileSync('README.md', 'utf8');
     expect(readme).toMatch(/## Performance budgets/);
-    for (const size of ['40,55 kB', '76,31 kB', '187,86 kB', '201,97 kB']) { expect(readme).toContain(size); }
+    for (const size of ['40,55 kB', '76,31 kB', '211,88 kB', '220,71 kB']) { expect(readme).toContain(size); }
   });
 });
 

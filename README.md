@@ -23,13 +23,13 @@ demo sources). Copy `dist/portal.js` and `dist/portal.css` to `portals/cash-repo
 
 ## Where its data is
 
-Nowhere: it stores nothing and reads no variable. The API and database are deferred (micro plan
-D-CSH-01): the production module registers no source and offers no area; demo data lives only in the demo build.
+Nowhere: it stores nothing and reads no variable. The production module registers the HTTP adapters of the read ports of the day and the closures (`src/app/http/`, over `props.apiClient`, route `/api/v1/cash-reporting`) and offers only "Caja" and its history; the writers of the opening, the base and the movements are registered too (branch 2; the movement form still waits for the closing writer), while the closing, reopening, correction, the reports and the monthly consolidation have no adapter yet and are not offered (micro plan
+D-CSH-02). Demo data lives only in the demo build.
 
 ## How to test
 
 `npm test` (Vitest). `ci.yml` runs on pull requests to `develop` and `qa`: tests, both module builds, a check
-that the production module carries no client, storage or address, and the module size.
+that the production module carries no client, storage or host address and no route but `/api/v1/cash-reporting`, and the module size.
 
 ## Performance budgets
 
@@ -40,8 +40,8 @@ Pillar 13 (measured 2026-10-15 on `origin/develop`, no new dependency). `angular
 | Application build, initial (polyfills + main) | 40,55 kB (13,93 kB transferred) | 70 kB | 100 kB |
 | Application build, lazy `bootstrap` chunk | 76,31 kB (15,16 kB transferred) | none | none |
 | Application build, whole `dist/cash-reporting-portal` | 1.482.369 B | none | none |
-| Mounted module `main.js`, production (`build:module`) | 187,86 kB (53,35 kB transferred) | 230 kB | 280 kB |
-| Mounted module `main.js`, demo (`build:module:demo`) | 201,97 kB (56,37 kB transferred) | 230 kB | 280 kB |
+| Mounted module `main.js`, production (`build:module`) | 211,88 kB (58,07 kB transferred; with the read adapters and the opening, base and movement writers, 2026-11-04) | 230 kB | 280 kB |
+| Mounted module `main.js`, demo (`build:module:demo`) | 220,71 kB (59,55 kB transferred; 2026-11-04) | 230 kB | 280 kB |
 
 Any change that moves one of these figures records the new measure here.
 

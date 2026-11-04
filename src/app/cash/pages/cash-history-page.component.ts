@@ -7,6 +7,7 @@ import { CASH_COPY } from '../cash-copy';
 import { CASH_CONSULTATION_COPY, originOf } from '../cash-consultation-copy';
 import { CashCorrectionComponent } from '../components/cash-correction.component';
 import { CashClosure, CashClosuresSource } from '../data/cash-closures-source';
+import { CashCorrectionWriter } from '../data/cash-correction-writer';
 import { CashMovement } from '../data/cash-day-source';
 
 /** Sub-screen of 14, admin-historial-caja.html: every closure with what it kept, newest first. Read only: it draws what the source resolved (RN-CJ1). */
@@ -79,7 +80,8 @@ export class CashHistoryPageComponent {
   protected readonly navigation = inject(PortalNavigation);
   private readonly source = inject(CashClosuresSource);
   /** T-07, T-08: the correction form is the Administrador's, and never on an automatic closure. */
-  protected readonly canCorrect = inject(PortalCapabilities).canCorrectClosure();
+  /** Drawn only in a build that has the writer (as the day page does with its own): the production build registers it in a later branch. */
+  protected readonly canCorrect = inject(PortalCapabilities).canCorrectClosure() && inject(CashCorrectionWriter, { optional: true }) !== null;
   protected readonly load = new PageLoad<CashClosure>();
   protected readonly money = formatCop;
   protected readonly date = formatDate;
