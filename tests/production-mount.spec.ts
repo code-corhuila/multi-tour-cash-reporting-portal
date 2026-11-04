@@ -10,6 +10,7 @@ import { CashCorrectionWriter } from '../src/app/cash/data/cash-correction-write
 import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
 import { DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
 import { fakeCashClient, page } from './cash-api-client.double';
+import { CASH_CONSULTATION_LINKS } from '../src/app/shared/portal-slots';
 import { withoutComments } from './source-files';
 
 // RN-CJ9 and the micro spec (D-CSH-03): demo data reaches only the demo build, which swaps
@@ -45,7 +46,8 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
   it('the production sources register the read ports of the day and the closures, and call the container client only when a screen asks', () => {
     const { client, calls } = ROUTES();
     const providers = sourceProviders(client) as { provide: unknown }[];
-    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource]);
+    // The panel "Consulta" of the day is composed by the build too (plan D-02): the monthly link draws itself only where its area is offered.
+    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
     expect(calls).toEqual([]);
   });
 
