@@ -37,6 +37,7 @@ const SPECIFIED_TREE = [
   'src/app/demo/reports-demo.ts',
   'src/app/http/api-paths.ts',
   'src/app/http/cash-api-mappers.ts',
+  'src/app/http/cash-closing-api.ts',
   'src/app/http/cash-closures-api-source.ts',
   'src/app/http/cash-day-api-source.ts',
   'src/app/http/cash-writers-api.ts',
