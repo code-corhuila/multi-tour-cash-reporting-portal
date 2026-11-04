@@ -3,7 +3,8 @@ import { MonthlyPeriodComponent } from '../../shared/monthly-period.component';
 import { PageLoad, PageStateComponent } from '../../shared/page-state';
 import { PortalNavigation } from '../../shared/portal-navigation';
 import { CASH_CONSULTATION_COPY } from '../cash-consultation-copy';
-import { MonthlyPeriod, MonthlyReportSource } from '../data/monthly-report-source';
+import { MonthlyPeriod } from '../../shared/monthly-period';
+import { MonthlyReportSource } from '../data/monthly-report-source';
 
 /** Sub-screen of 14, admin-consolidacion-mensual.html: the periods as the service consolidated them; read only, nothing is added up here (RN-RM1). */
 @Component({
