@@ -6,7 +6,12 @@ import type { MountProps } from '../src/app/shell-contract';
 import { CashClosuresSource } from '../src/app/cash/data/cash-closures-source';
 import { CashDaySource } from '../src/app/cash/data/cash-day-source';
 import { CashBaseWriter } from '../src/app/cash/data/cash-base-writer';
+import { CashClosingWriter } from '../src/app/cash/data/cash-closing-writer';
 import { CashCorrectionWriter } from '../src/app/cash/data/cash-correction-writer';
+import { CashMovementWriter } from '../src/app/cash/data/cash-movement-writer';
+import { CashOpeningWriter } from '../src/app/cash/data/cash-opening-writer';
+import { CashPendingClosingWriter } from '../src/app/cash/data/cash-pending-closing-writer';
+import { CashReopeningWriter } from '../src/app/cash/data/cash-reopening-writer';
 import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
 import { DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
 import { fakeCashClient, page } from './cash-api-client.double';
@@ -43,17 +48,17 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
     expect(code).not.toMatch(/\bDemo[A-Z]\w*|\w+DemoProviders\b/);
   });
 
-  it('the production sources register the read ports of the day and the closures, and call the container client only when a screen asks', () => {
+  it('the production sources register the read ports and the writers of the opening, the base and the movements, and call the container client only when a screen asks', () => {
     const { client, calls } = ROUTES();
     const providers = sourceProviders(client) as { provide: unknown }[];
     // The panel "Consulta" of the day is composed by the build too (plan D-02): the monthly link draws itself only where its area is offered.
-    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
+    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
     expect(calls).toEqual([]);
   });
 
-  it('registers no writer, no dashboard and no monthly port yet: those areas stay unoffered (next branches)', () => {
+  it('registers no closing, reopening, pending closing or correction writer, no dashboard and no monthly port yet (next branches)', () => {
     const tokens = (sourceProviders(ROUTES().client) as { provide: unknown }[]).map((provider) => provider.provide);
-    for (const absent of [CashBaseWriter, CashCorrectionWriter, MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
+    for (const absent of [CashClosingWriter, CashReopeningWriter, CashPendingClosingWriter, CashCorrectionWriter, MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
   });
 
   it('the demo build is the only one that swaps the sources, through the module:demo configuration', () => {
@@ -91,12 +96,12 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(calls).toEqual([]);
     });
 
-    it('offers the tenant administrator only "Caja": the day from the service, read only, no form, no Reportes', async () => {
+    it('offers the tenant administrator only "Caja": the day from the service with the base and movement forms, no Reportes', async () => {
       mountAs(['TENANT_ADMINISTRATOR']);
       await vi.waitFor(() => expect(host.querySelector('.csh-cash-hero')).toBeTruthy());
       expect(Array.from(host.querySelectorAll('.csh-nav button')).map((b) => flat(b.textContent))).toEqual(['Caja']);
       expect(flat(host.querySelector('.csh-cash-hero')?.textContent)).toContain('Efectivo esperado al cierre: $300.000.');
-      expect(host.querySelectorAll('form, input, select, textarea').length).toBe(0);
+      expect(host.querySelectorAll('form').length).toBeGreaterThan(0);
       const links = Array.from(host.querySelectorAll('.csh-cash-links button')).map((b) => flat(b.textContent));
       expect(links).toEqual(['Historial de caja']);
     });
