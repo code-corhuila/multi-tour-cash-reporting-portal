@@ -21,6 +21,11 @@ export const CASH_CONSULTATION_COPY = Object.freeze({
     origins: { operative: 'Apertura operativa', later: 'Creación automática con apertura operativa posterior', automatic: 'Creación automática, sin apertura operativa ni efectivo (cierre automático)' },
     reopenings: { title: 'Reaperturas', columns: ['Fecha', 'Responsable', 'Motivo'] },
     corrections: { title: 'Correcciones posteriores', columns: ['Fecha', 'Responsable', 'Justificación'], none: 'Sin correcciones registradas para este cierre.' },
+    correction: {
+      label: 'Justificación de la corrección (obligatoria)', placeholder: 'Describe la corrección operativa excepcional y su justificación',
+      note: 'Solo el Administrador del tenant puede registrar una corrección posterior al cierre.', submit: 'Registrar corrección',
+      required: 'Registra la justificación obligatoria de la corrección.', automatic: 'Un cierre automático no admite correcciones.', failed: 'No se pudo completar la solicitud.',
+    },
     movements: { title: 'Movimientos de la jornada (cada uno se contabiliza una sola vez)', nonCash: (n: number) => `${n} movimiento(s) no efectivo(s): se concilian aparte y no modifican el efectivo esperado.` },
   },
   monthly: {
