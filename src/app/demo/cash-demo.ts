@@ -1,5 +1,6 @@
 import { Provider, inject } from '@angular/core';
-import { CashClosure, CashClosuresSource } from '../cash/data/cash-closures-source';
+import { CashClosure, CashClosuresSource, CashCorrection } from '../cash/data/cash-closures-source';
+import { CashCorrectionResult, CashCorrectionWriter } from '../cash/data/cash-correction-writer';
 import { cashConsultationSlotProviders } from '../cash/cash-consultation-slots';
 import { CashBaseResult, CashBaseWriter } from '../cash/data/cash-base-writer';
 import { CashClosingResult, CashClosingWriter } from '../cash/data/cash-closing-writer';
@@ -69,6 +70,8 @@ export class DemoCashStore {
   private parametrized = BASE;
   /** A key answers once: the same key returns the same answer and records nothing more (D-07). */
   private readonly answers = new Map<string, unknown>();
+  /** The corrections of the closures, by closure: a closure never changes, the corrections only add rows (RN-CJ5). */
+  private readonly corrections = new Map<string, readonly CashCorrection[]>();
 
   constructor(private readonly env: Environment = { now: () => Date.now(), actor: () => `${WHO} (Administrador del tenant)` }) {}
 
@@ -143,6 +146,14 @@ export class DemoCashStore {
     });
   }
 
+  /** AC-CJ.5: a row with who and when; the closure itself is not touched. The demo closure is manual, so no automatic one is refused here. */
+  registerCorrection(closureId: string, justification: string, key: string): CashCorrectionResult {
+    return this.once(key, (): CashCorrectionResult => {
+      if (!this.closures().some((closure) => closure.cashClosureId === closureId)) { return { kind: 'refused', reason: 'NOT_FOUND' }; }
+      this.corrections.set(closureId, [...(this.corrections.get(closureId) ?? []), { appliedAt: this.stamp(), appliedBy: this.env.actor(), justification }]);
+      return { kind: 'registered' };
+    });
+  }
   /** The reopening of the closed cash (AC-CJ.15): the closure so far stays in the history, marked as reopened, with the reason, who and when; the same cash opens again. */
   reopen(reason: string, key: string): CashReopeningResult {
     return this.once(key, (): CashReopeningResult => {
@@ -161,7 +172,8 @@ export class DemoCashStore {
   /** The closures, newest first: the one of the closed day as it stands, and each earlier one a reopening left (DP-CJ8: every closing of the day is kept). */
   closures(): CashClosure[] {
     const state = this.current();
-    return [...(state.status === 'CLOSED' ? [this.liveClosure(this.todayOrder(state))] : []), ...[...state.history].reverse()];
+    return [...(state.status === 'CLOSED' ? [this.liveClosure(this.todayOrder(state))] : []), ...[...state.history].reverse()]
+      .map((closure) => ({ ...closure, corrections: this.corrections.get(closure.cashClosureId) ?? closure.corrections }));
   }
 
   /** The closing of an earlier day whose cash was never closed (AC-CJ.16): it keeps its own date, today's cash is not touched, and it joins the history. */
@@ -252,6 +264,13 @@ export class DemoCashClosingWriter extends CashClosingWriter {
   override close(idempotencyKey: string): Promise<CashClosingResult> { return Promise.resolve(this.store.close(idempotencyKey)); }
 }
 
+export class DemoCashCorrectionWriter extends CashCorrectionWriter {
+  constructor(private readonly store: DemoCashStore) { super(); }
+  override register(closureId: string, justification: string, idempotencyKey: string): Promise<CashCorrectionResult> {
+    return Promise.resolve(this.store.registerCorrection(closureId, justification, idempotencyKey));
+  }
+}
+
 /** One store for the three ports; the responsible of a new row is the role of who acts, as the mockup writes it. */
 export function cashDemoProviders(): Provider[] {
   return [
@@ -269,6 +288,7 @@ export function cashDemoProviders(): Provider[] {
     { provide: CashMovementWriter, useFactory: () => new DemoCashMovementWriter(inject(DemoCashStore)) },
     { provide: CashBaseWriter, useFactory: () => new DemoCashBaseWriter(inject(DemoCashStore)) },
     { provide: CashClosingWriter, useFactory: () => new DemoCashClosingWriter(inject(DemoCashStore)) },
+    { provide: CashCorrectionWriter, useFactory: () => new DemoCashCorrectionWriter(inject(DemoCashStore)) },
     { provide: CashOpeningWriter, useFactory: () => new DemoCashOpeningWriter(inject(DemoCashStore)) },
     { provide: CashReopeningWriter, useFactory: () => new DemoCashReopeningWriter(inject(DemoCashStore)) },
     { provide: CashPendingClosingWriter, useFactory: () => new DemoCashPendingClosingWriter(inject(DemoCashStore)) },
