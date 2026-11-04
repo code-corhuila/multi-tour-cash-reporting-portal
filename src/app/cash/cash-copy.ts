@@ -32,6 +32,24 @@ export const CASH_COPY = Object.freeze({
     cancel: 'Cancelar', save: 'Guardar base diaria', invalid: 'Registra una base diaria válida.', saved: 'Base diaria actualizada correctamente.',
     refused: 'La base solo se ajusta con la caja abierta con apertura operativa.', failed: 'No se pudo completar la solicitud.',
   },
+  opening: {
+    eyebrow: 'Apertura operativa', title: 'Abrir la caja de hoy', label: 'Base del día (efectivo físico)', submit: 'Abrir caja',
+    note: 'La apertura registra la base de efectivo del día. Si la caja se creó automáticamente por una transferencia validada, esta misma caja pasa por la apertura antes de registrar efectivo; nunca existen dos cajas para la misma fecha.',
+    invalid: 'Registra una base diaria válida.', alreadyOpen: 'La caja de hoy ya tiene apertura operativa.', dayClosed: 'La caja de hoy está cerrada: reábrela con motivo.',
+    opened: (base: string) => `Caja abierta con una base de ${base}. Quedó registrada la apertura con su responsable, fecha y hora.`, failed: 'No se pudo completar la solicitud.',
+  },
+  reopening: {
+    eyebrow: 'Reapertura', title: 'Reabrir la caja cerrada', label: 'Motivo de la reapertura (obligatorio)', placeholder: 'Describe por qué debe reabrirse la caja', submit: 'Reabrir caja',
+    note: 'Toda corrección o movimiento posterior al cierre que afecte el efectivo físico exige reabrir la caja con motivo y trazabilidad. Las transferencias validadas el mismo día se registran como movimientos no efectivos posteriores al cierre, sin reabrir.',
+    reasonRequired: 'Registra el motivo obligatorio de la reapertura.', notClosed: 'La caja de hoy no está cerrada.',
+    reopened: 'Caja reabierta con motivo. El cierre original se conserva en el historial y la reapertura queda auditada.', failed: 'No se pudo completar la solicitud.',
+  },
+  pending: {
+    eyebrow: 'Caja Pendiente de cierre', title: 'Hay una caja anterior sin cerrar', submit: 'Cerrar caja pendiente',
+    text: (date: string) => `La caja del ${date} tuvo apertura operativa y no se cerró al finalizar su día: quedó con la marca Pendiente de cierre. No acepta movimientos nuevos ni tiene efectivo final calculado por el sistema; la caja de hoy opera de forma independiente.`,
+    closed: (date: string, expectedCash: string) => `Caja del ${date} cerrada formalmente. Efectivo esperado: ${expectedCash}.`,
+    noPending: 'No hay una caja anterior pendiente de cierre.', failed: 'No se pudo completar la solicitud.',
+  },
   movementsEyebrow: 'Movimientos',
   movementsTitle: 'Registro de la jornada',
   form: {

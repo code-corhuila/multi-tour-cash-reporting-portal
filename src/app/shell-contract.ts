@@ -24,6 +24,8 @@ export interface MountProps {
   navigate?: (target: PortalTarget) => void;
   /** Who draws the navigation chrome: 'container' means the container draws the sidebar and the portal only shows its content; absent, the portal draws its own. */
   chrome?: 'container';
+  /** Set only with `chrome: 'container'` (multi-tour-front `core/client/types.ts`): the portal calls it with the sidebar entry it shows as current, so the container marks it. */
+  onAreaChange?: (area: string) => void;
 }
 
 export type PortalApiClient = MountProps['apiClient'];

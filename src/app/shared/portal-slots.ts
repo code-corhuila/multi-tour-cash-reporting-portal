@@ -14,6 +14,9 @@ export type ContainerNavigation = (target: PortalTarget) => void;
 /** MountProps.navigate when the container offers it; null otherwise, and the links that need it are not drawn. */
 export const CONTAINER_NAVIGATION = new InjectionToken<ContainerNavigation | null>('CONTAINER_NAVIGATION', { factory: () => null });
 
+/** The container's `onAreaChange`, or null: the shell reports the sidebar entry it shows whenever it changes (only with the container chrome). */
+export const CONTAINER_AREA_REPORTER = new InjectionToken<((area: string) => void) | null>('CONTAINER_AREA_REPORTER', { factory: () => null });
+
 /** true when the container draws the navigation (MountProps.chrome === 'container'): the shell then omits its sidebar. */
 export const CONTAINER_CHROME = new InjectionToken<boolean>('CONTAINER_CHROME', { factory: () => false });
 

@@ -31,6 +31,24 @@ D-CSH-01): the production module registers no source and offers no area; demo da
 `npm test` (Vitest). `ci.yml` runs on pull requests to `develop` and `qa`: tests, both module builds, a check
 that the production module carries no client, storage or address, and the module size.
 
+## Performance budgets
+
+Pillar 13 (measured 2026-10-15 on `origin/develop`, no new dependency). `angular.json` fails the build when a bundle grows past its limit:
+
+| Artifact | Measured (raw) | Warning | Error |
+|---|---|---|---|
+| Application build, initial (polyfills + main) | 40,55 kB (13,93 kB transferred) | 70 kB | 100 kB |
+| Application build, lazy `bootstrap` chunk | 76,31 kB (15,16 kB transferred) | none | none |
+| Application build, whole `dist/cash-reporting-portal` | 1.482.369 B | none | none |
+| Mounted module `main.js`, production (`build:module`) | 187,86 kB (53,35 kB transferred) | 230 kB | 280 kB |
+| Mounted module `main.js`, demo (`build:module:demo`) | 201,97 kB (56,37 kB transferred) | 230 kB | 280 kB |
+
+Any change that moves one of these figures records the new measure here.
+
+## CSP impact
+
+Pillar 9: the portal loads no image or file of its own. The only resource that needs the container policy is the export of screen 16 (CSV and PDF), which is saved through a temporary link to a Blob: the container must allow `blob:` for downloads under `default-src 'self'`. Nothing uses `data:` (checked with a search over `src/`), and no network is involved (RN-CJ9).
+
 ## What is missing
 
 Pull request 1 of `HU-CSH-001` is the skeleton only. Open (`tasks.md`): T-02 shared base, T-03 to T-08 the
