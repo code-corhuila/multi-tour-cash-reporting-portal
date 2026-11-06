@@ -42,7 +42,10 @@ export function roleOf(roles: readonly string[]): ActorRole {
   return (roles.find((role) => isKnown(role) && role !== FAIL_CLOSED_ROLE) as ActorRole | undefined) ?? FAIL_CLOSED_ROLE;
 }
 
-/** Who acts, as the container reported (norm 5.4.1). G-PERM: the session carries only roles, so Gestionar caja is false until it is reported. */
+/** The permission of the token claim `permissions` that is Gestionar caja (HU-SEC-006). */
+export const MANAGE_CASH_PERMISSION = 'MANAGE_CASH';
+
+/** Who acts, as the container reported (norm 5.4.1). Gestionar caja is true only when the session permissions carry it; a container that reports none leaves it false. */
 @Injectable({ providedIn: 'root', useFactory: () => PortalActor.from([]) })
 export class PortalActor {
   private constructor(readonly role: ActorRole, readonly mayManageCash: boolean) {}

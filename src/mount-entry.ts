@@ -3,7 +3,7 @@ import { createApplication } from '@angular/platform-browser';
 import { AppComponent } from './app/app.component';
 import { MountProps, PortalApiClient } from './app/shell-contract';
 import { sourceProviders } from './app/sources';
-import { PortalActor } from './app/shared/portal-capabilities';
+import { MANAGE_CASH_PERMISSION, PortalActor } from './app/shared/portal-capabilities';
 import { PORTAL_INITIAL_PARAMS } from './app/shared/portal-navigation';
 import { CONTAINER_AREA_REPORTER, CONTAINER_CHROME, CONTAINER_NAVIGATION } from './app/shared/portal-slots';
 
@@ -43,7 +43,7 @@ export function mountWith(element: HTMLElement, props: MountProps, sources: (cli
     providers: [
       provideZonelessChangeDetection(),
       // The actor and the area to show come from the container (plan D-04, D-05).
-      { provide: PortalActor, useValue: PortalActor.from(props.session.roles) },
+      { provide: PortalActor, useValue: PortalActor.from(props.session.roles, props.session.permissions?.includes(MANAGE_CASH_PERMISSION) ?? false) },
       { provide: CONTAINER_CHROME, useValue: props.chrome === 'container' },
       { provide: PORTAL_INITIAL_PARAMS, useValue: props.initialParams ?? {} },
       ...(props.navigate ? [{ provide: CONTAINER_NAVIGATION, useValue: props.navigate }] : []),
