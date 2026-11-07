@@ -19,7 +19,7 @@ const OPEN = {
 };
 const NO_OPENING = {
   businessDate: '2026-09-02', timeZone: 'America/Bogota', cashSessionId: null, status: 'NO_OPENING', origin: null, hasOperationalOpening: false,
-  pendingClosure: false, openingBaseCents: null, incomeCents: 0, operationalPaymentsCents: 0, expensesCents: 0, refundsCents: 0, totalCents: 0,
+  pendingClosure: false, openingBaseCents: null, parametrizedBaseCents: 30000000, incomeCents: 0, operationalPaymentsCents: 0, expensesCents: 0, refundsCents: 0, totalCents: 0,
   expectedCashCents: null, netTransfersCents: 0,
 };
 const WIRE_MOVEMENTS = [
@@ -69,7 +69,7 @@ describe('cashDayApiSourceIsAPortOverTheContainerClient', () => {
   it('maps a day without cash to NO_OPENING with base 0, no opener and "No aplica" (null) expected cash; it asks for no movements', async () => {
     const { client, paths } = fakeCashClient({ [CURRENT]: { ok: NO_OPENING }, [PENDING]: NO_PENDING });
     expect(await new CashDayApiSource(client).today()).toEqual({
-      businessDate: '2026-09-02', status: 'NO_OPENING', origin: null, openingBase: 0, openedBy: null, movements: [],
+      businessDate: '2026-09-02', status: 'NO_OPENING', origin: null, openingBase: 0, openedBy: null, parametrizedBase: 30000000, movements: [],
       metrics: { income: 0, operationalPayments: 0, expenses: 0, refunds: 0, total: 0, expectedCash: null, netTransfers: 0 },
     });
     expect(paths()).toEqual([CURRENT, PENDING]);
@@ -82,6 +82,11 @@ describe('cashDayApiSourceIsAPortOverTheContainerClient', () => {
   ])('derives the portal status from %s', async (_name, change, expected) => {
     const { client } = fakeCashClient({ [CURRENT]: { ok: { ...OPEN, ...change } }, [MOVEMENTS('2026-09-01')]: { ok: page([]) }, [PENDING]: NO_PENDING });
     expect((await new CashDayApiSource(client).today()).status).toBe(expected);
+  });
+
+  it('carries no parametrized base for a day that already has its operational opening', async () => {
+    const { client } = fakeCashClient({ [CURRENT]: { ok: OPEN }, [MOVEMENTS('2026-09-01')]: { ok: page([]) }, [PENDING]: NO_PENDING });
+    expect('parametrizedBase' in (await new CashDayApiSource(client).today())).toBe(false);
   });
 
   it('reads every page of the movements of the day, in the order the service gives them', async () => {
