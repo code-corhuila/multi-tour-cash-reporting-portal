@@ -5,7 +5,7 @@ import { CashDay, CashDayStatus, CashMovement, CashMovementType } from '../cash/
 interface Actor { readonly roleLabel: string; readonly displayName?: string | null }
 export interface CashDayDto {
   readonly businessDate: string; readonly timeZone: string; readonly cashSessionId: string | null; readonly status: 'NO_OPENING' | 'OPEN' | 'CLOSED';
-  readonly origin?: CashDay['origin']; readonly hasOperationalOpening: boolean; readonly openingBaseCents?: number | null; readonly openedBy?: Actor | null;
+  readonly origin?: CashDay['origin']; readonly hasOperationalOpening: boolean; readonly openingBaseCents?: number | null; readonly parametrizedBaseCents?: number | null; readonly openedBy?: Actor | null;
   readonly incomeCents: number; readonly operationalPaymentsCents: number; readonly expensesCents: number; readonly refundsCents: number;
   readonly totalCents: number; readonly expectedCashCents?: number | null; readonly netTransfersCents: number;
 }
@@ -53,6 +53,7 @@ export function toDay(dto: CashDayDto, movements: readonly CashMovementDto[], pe
   return {
     businessDate: dto.businessDate, status: statusOf(dto), origin: dto.origin ?? null, openingBase: dto.openingBaseCents ?? 0,
     openedBy: dto.openedBy ? actorText(dto.openedBy) : null,
+    ...(typeof dto.parametrizedBaseCents === 'number' ? { parametrizedBase: dto.parametrizedBaseCents } : {}),
     ...(pending ? { pendingClosure: { businessDate: pending.businessDate, openedBy: pending.openedBy ? actorText(pending.openedBy) : '', openingBase: pending.openingBaseCents ?? 0 } } : {}),
     movements: movements.map((movement) => toMovement(movement, dto.timeZone)),
     metrics: {
