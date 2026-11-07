@@ -6,7 +6,7 @@ import { CashDayDto, CashMovementDto, toDay } from './cash-api-mappers';
 /**
  * CashDaySource over the container client (HU-CSH-001 plan D-02/D-03): today's cash, its movements and the previous day opened and never
  * closed, which the contract keeps in three reads. The service decides "today" and the tenant; nothing is added up here (RN-CJ1).
- * TODO(contract): `parametrizedBase` has no field yet, so the opening writer must not rely on it.
+ * `parametrizedBase` comes from `parametrizedBaseCents`, present only while the day has no operational opening (AC-CJ.13).
  */
 export class CashDayApiSource extends CashDaySource {
   constructor(private readonly client: PortalApiClient) { super(); }
