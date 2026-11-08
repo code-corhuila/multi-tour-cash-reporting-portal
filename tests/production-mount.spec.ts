@@ -48,17 +48,17 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
     expect(code).not.toMatch(/\bDemo[A-Z]\w*|\w+DemoProviders\b/);
   });
 
-  it('the production sources register the read ports and the writers of the opening, the base, the movements, the closing, the pending closing and the reopening, and call the container client only when a screen asks', () => {
+  it('the production sources register the read ports and the writers of the opening, the base, the movements, the closing, the pending closing, the reopening and the correction, and call the container client only when a screen asks', () => {
     const { client, calls } = ROUTES();
     const providers = sourceProviders(client) as { provide: unknown }[];
     // The panel "Consulta" of the day is composed by the build too (plan D-02): the monthly link draws itself only where its area is offered.
-    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
+    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CashCorrectionWriter, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
     expect(calls).toEqual([]);
   });
 
-  it('registers no correction writer, no dashboard and no monthly port yet (next branches)', () => {
+  it('registers no dashboard and no monthly port yet (next branches)', () => {
     const tokens = (sourceProviders(ROUTES().client) as { provide: unknown }[]).map((provider) => provider.provide);
-    for (const absent of [CashCorrectionWriter, MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
+    for (const absent of [MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
   });
 
   it('the demo build is the only one that swaps the sources, through the module:demo configuration', () => {
@@ -180,14 +180,14 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(host.querySelector('.csh-cash-register-head button')).toBeNull();
     });
 
-    it('opens the history from the day with the closures of the service and no correction form, because its writer is not registered', async () => {
+    it('opens the history from the day with the closures of the service and the correction form of the Administrador, because its writer is registered', async () => {
       mountAs(['TENANT_ADMINISTRATOR']);
       await vi.waitFor(() => expect(host.querySelector('.csh-cash-links button')).toBeTruthy());
       (host.querySelector('.csh-cash-links button') as HTMLButtonElement).click();
       await vi.waitFor(() => expect(host.querySelector('.csh-history-closure')).toBeTruthy());
       expect(flat(host.querySelector('.csh-history-closure h2')?.textContent)).toBe('Total: $300.000');
       expect(flat(host.querySelector('.csh-history-badge')?.textContent)).toBe('Cerrado');
-      expect(host.querySelectorAll('form, textarea').length).toBe(0);
+      expect(host.querySelectorAll('textarea').length).toBeGreaterThan(0);
     });
 
     it('shows the error with "Reintentar" in Spanish when the service fails, and reads again on retry', async () => {

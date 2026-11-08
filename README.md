@@ -23,7 +23,7 @@ demo sources). Copy `dist/portal.js` and `dist/portal.css` to `portals/cash-repo
 
 ## Where its data is
 
-Nowhere: it stores nothing and reads no variable. The production module registers the HTTP adapters of the read ports of the day and the closures (`src/app/http/`, over `props.apiClient`, route `/api/v1/cash-reporting`) and offers only "Caja" and its history; the writers of the opening, the base and the movements are registered too (branch 2), and so are the closing, the pending closing and the reopening (branch 3: the movement form and the closing are drawn), while the correction, the reports and the monthly consolidation have no adapter yet and are not offered (micro plan
+Nowhere: it stores nothing and reads no variable. The production module registers the HTTP adapters of the read ports of the day and the closures (`src/app/http/`, over `props.apiClient`, route `/api/v1/cash-reporting`) and offers only "Caja" and its history; the writers of the opening, the base and the movements are registered too (branch 2), and so are the closing, the pending closing and the reopening (branch 3: the movement form and the closing are drawn), and so is the correction note of a closure (TD-12: the Administrador sees its form in the history), while the reports and the monthly consolidation have no adapter yet and are not offered (micro plan
 D-CSH-02). Demo data lives only in the demo build.
 
 ## How to test
