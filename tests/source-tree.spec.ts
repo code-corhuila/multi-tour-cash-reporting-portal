@@ -54,6 +54,7 @@ const SPECIFIED_TREE = [
   'src/app/reports/reports-copy.ts',
   'src/app/reports/reports-monthly-slots.ts',
   'src/app/shared/clock.ts',
+  'src/app/shared/error-report.ts',
   'src/app/shared/focus.ts',
   'src/app/shared/format.ts',
   'src/app/shared/idempotency-keys.ts',
