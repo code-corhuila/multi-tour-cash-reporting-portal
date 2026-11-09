@@ -1,6 +1,7 @@
+import { reportFailure } from './app/shared/error-report';
 import { initFederation } from '@angular-architects/native-federation';
 
 initFederation()
-  .catch((err) => console.error(err))
+  .catch(reportFailure)
   .then(() => import('./bootstrap'))
-  .catch((err) => console.error(err));
+  .catch(reportFailure);
