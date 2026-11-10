@@ -18,7 +18,7 @@ import { sourceProviders as demoSources } from '../src/app/sources.demo';
 // read-only sub-screens, admin-historial-caja.html and admin-consolidacion-mensual.html. Amounts are cents. Demo day: 01 sep 2026.
 const LEGACY_CODES = /OPEN_OPERATIVE|OPEN_AUTOMATIC|NO_OPENING|CLOSED|AUTOMATIC|MANUAL|\bCASH\b|TRANSFER|REFUND|INCOME|EXPENSE|OPERATIONAL_|AFTER_/;
 const flat = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
-const ADMIN = 'Fernanda Robayo (Administrador del tenant)';
+const ADMIN = 'Administrador Demo (Administrador del tenant)';
 const peso = (n: number) => n * 100;
 const TODAY: CashDay = {
   businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: peso(300000), openedBy: ADMIN, movements: [],
@@ -165,8 +165,8 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
       reopenings: [{ reopenedAt: '2026-08-31T19:10:00', reopenedBy: ADMIN, reason: 'Falta registrar un gasto' }],
       corrections: [{ appliedAt: '2026-09-01T08:30:00', appliedBy: ADMIN, justification: 'Ajuste por error de digitación' }],
       movements: [
-        { cashMovementId: 'a', movementType: 'INCOME', concept: 'Pago reserva #RES-1899', amount: peso(200000), paymentMedium: 'TRANSFER', afterClosing: true, registeredAt: '2026-08-31T20:00:00', registeredBy: 'Fernanda Robayo' },
-        { cashMovementId: 'b', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -peso(250000), paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-08-31T11:45:00', registeredBy: 'Fernanda Robayo' },
+        { cashMovementId: 'a', movementType: 'INCOME', concept: 'Pago reserva #RES-1899', amount: peso(200000), paymentMedium: 'TRANSFER', afterClosing: true, registeredAt: '2026-08-31T20:00:00', registeredBy: 'Administrador Demo' },
+        { cashMovementId: 'b', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -peso(250000), paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-08-31T11:45:00', registeredBy: 'Administrador Demo' },
       ],
     };
     const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([rich]));
