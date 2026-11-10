@@ -9,7 +9,7 @@ const BASE = '/api/v1/cash-reporting';
 const CURRENT = `${BASE}/cash-days/current`;
 const MOVEMENTS = (date: string, n = 1) => `${BASE}/cash-days/${date}/movements?page=${n}&limit=100`;
 const PENDING = `${BASE}/cash-days?pendingClosure=true&page=1&limit=1`;
-const ADMIN = { userId: 'u-1', roleLabel: 'Administrador del tenant', displayName: 'Fernanda Robayo' };
+const ADMIN = { userId: 'u-1', roleLabel: 'Administrador del tenant', displayName: 'Administrador Demo' };
 
 const OPEN = {
   businessDate: '2026-09-01', timeZone: 'America/Bogota', cashSessionId: 's-1', status: 'OPEN', origin: 'OPERATIONAL_OPENING',
@@ -29,13 +29,13 @@ const WIRE_MOVEMENTS = [
   { cashMovementId: 'm4', businessDate: '2026-09-01', movementType: 'OPERATIONAL_PAYMENT', paymentMedium: 'CASH', concept: 'Pago a guía', amountCents: 1000000, afterClosing: false, registeredAt: '2026-09-02T04:30:00Z', registeredBy: ADMIN },
 ];
 const PORTAL_MOVEMENTS = [
-  { cashMovementId: 'm1', movementType: 'INCOME', concept: 'Pago reserva #RES-1901', amount: 129000000, paymentMedium: 'TRANSFER', afterClosing: false, registeredAt: '2026-09-01T09:20:00', registeredBy: 'Fernanda Robayo (Administrador del tenant)' },
-  { cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Fernanda Robayo (Administrador del tenant)' },
+  { cashMovementId: 'm1', movementType: 'INCOME', concept: 'Pago reserva #RES-1901', amount: 129000000, paymentMedium: 'TRANSFER', afterClosing: false, registeredAt: '2026-09-01T09:20:00', registeredBy: 'Administrador Demo (Administrador del tenant)' },
+  { cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Administrador Demo (Administrador del tenant)' },
   { cashMovementId: 'm3', movementType: 'REFUND', concept: 'Devolución reserva #RES-1902', amount: -15000000, paymentMedium: 'TRANSFER', afterClosing: true, registeredAt: '2026-09-01T14:10:00', registeredBy: 'Colaborador operativo', reservationId: 'res-1902' },
-  { cashMovementId: 'm4', movementType: 'OPERATIONAL_PAYMENT', concept: 'Pago a guía', amount: -1000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T23:30:00', registeredBy: 'Fernanda Robayo (Administrador del tenant)' },
+  { cashMovementId: 'm4', movementType: 'OPERATIONAL_PAYMENT', concept: 'Pago a guía', amount: -1000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T23:30:00', registeredBy: 'Administrador Demo (Administrador del tenant)' },
 ];
 const PORTAL_DAY: CashDay = {
-  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Fernanda Robayo (Administrador del tenant)',
+  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Administrador Demo (Administrador del tenant)',
   movements: PORTAL_MOVEMENTS as never,
   metrics: { income: 129000000, operationalPayments: 0, expenses: 25000000, refunds: 15000000, total: 119000000, expectedCash: 5000000, netTransfers: 114000000 },
 };

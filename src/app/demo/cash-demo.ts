@@ -16,7 +16,7 @@ import { demoFixture } from './demo-fixtures';
 /** The demo day of 001- (01 sep 2026, the mockup's demo clock): one base, one income by transfer and one cash expense, as the mockup draws it (spec section 6). */
 const BUSINESS_DATE = '2026-09-01';
 const BASE = 30000000;
-const WHO = 'Fernanda Robayo';
+const WHO = 'Administrador Demo';
 type Type = CashMovement['movementType'];
 type Medium = CashMovement['paymentMedium'];
 interface LedgerEntry extends CashMovement { readonly validated: boolean }

@@ -13,7 +13,7 @@ const peso = (n: number) => n * 100;
 const MANUAL: CashClosure = {
   cashClosureId: 'cl-1', businessDate: '2026-08-31', closingMode: 'MANUAL', origin: 'OPERATIONAL_OPENING', reopened: false, openingBase: peso(300000),
   income: peso(800000), operationalPayments: 0, expenses: 0, refunds: 0, total: peso(1100000), expectedCash: peso(1100000),
-  closedBy: 'Fernanda Robayo (Administrador del tenant)', closedAt: '2026-08-31T18:00:00', reopenings: [], corrections: [], movements: [], nonCashMovements: 0,
+  closedBy: 'Administrador Demo (Administrador del tenant)', closedAt: '2026-08-31T18:00:00', reopenings: [], corrections: [], movements: [], nonCashMovements: 0,
 };
 const AUTOMATIC: CashClosure = { ...MANUAL, cashClosureId: 'cl-2', businessDate: '2026-08-30', closingMode: 'AUTOMATIC', origin: 'AUTOMATIC_CREATION', openingBase: 0, expectedCash: null };
 

@@ -6,6 +6,7 @@ import { sourceProviders } from './app/sources';
 import { MANAGE_CASH_PERMISSION, PortalActor } from './app/shared/portal-capabilities';
 import { PORTAL_INITIAL_PARAMS } from './app/shared/portal-navigation';
 import { CONTAINER_AREA_REPORTER, CONTAINER_CHROME, CONTAINER_NAVIGATION } from './app/shared/portal-slots';
+import { reportFailure } from './app/shared/error-report';
 
 /** Portals mounted now; the stylesheet leaves with the last one. */
 let mounted = 0;
@@ -54,6 +55,6 @@ export function mountWith(element: HTMLElement, props: MountProps, sources: (cli
     app = created;
     if (cleaned) return app.destroy();
     created.bootstrap(AppComponent, element);
-  }).catch((err) => console.error(err));
+  }).catch(reportFailure);
   return () => { if (!cleaned) { cleaned = true; release(); } };
 }

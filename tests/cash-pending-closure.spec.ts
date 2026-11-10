@@ -12,8 +12,8 @@ import { PortalActor } from '../src/app/shared/portal-capabilities';
 
 // HU-CSH-001 (spec 001-, AC-CJ.16): screen 14, admin-caja.html, the panel "Caja Pendiente de cierre" · "Hay una caja anterior sin cerrar".
 const WITH_PENDING: CashDay = {
-  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Fernanda Robayo (Administrador del tenant)', movements: [],
-  pendingClosure: { businessDate: '2026-08-31', openedBy: 'Fernanda Robayo (Administrador del tenant)', openingBase: 30000000 },
+  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Administrador Demo (Administrador del tenant)', movements: [],
+  pendingClosure: { businessDate: '2026-08-31', openedBy: 'Administrador Demo (Administrador del tenant)', openingBase: 30000000 },
   metrics: { income: 0, operationalPayments: 0, expenses: 0, refunds: 0, total: 30000000, expectedCash: 30000000, netTransfers: 0 },
 };
 const flat = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
@@ -132,7 +132,7 @@ describe('theDemoStoreClosesThePendingCashKeepingItsDate', () => {
     expect((await stores().day.today()).pendingClosure).toBeUndefined();
     withPending();
     const today = await stores().day.today();
-    expect(today.pendingClosure).toEqual({ businessDate: '2026-08-31', openedBy: 'Fernanda Robayo (Administrador del tenant)', openingBase: 30000000 });
+    expect(today.pendingClosure).toEqual({ businessDate: '2026-08-31', openedBy: 'Administrador Demo (Administrador del tenant)', openingBase: 30000000 });
     expect(today.status).toBe('OPEN_OPERATIVE');
   });
 

@@ -17,11 +17,11 @@ import { listSourceFiles, withoutComments } from './source-files';
 const LEGACY_CODES = /OPEN_OPERATIVE|OPEN_AUTOMATIC|NO_OPENING|CLOSED|\bCASH\b|TRANSFER|REFUND|INCOME|EXPENSE|OPERATIONAL_/;
 const DAY: CashDay = {
   businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000,
-  openedBy: 'Fernanda Robayo (Administrador del tenant)',
+  openedBy: 'Administrador Demo (Administrador del tenant)',
   movements: [
-    { cashMovementId: 'm1', movementType: 'INCOME', concept: 'Pago reserva #RES-1901', amount: 129000000, paymentMedium: 'TRANSFER', afterClosing: false, registeredAt: '2026-09-01T09:20:00', registeredBy: 'Fernanda Robayo' },
-    { cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Fernanda Robayo' },
-    { cashMovementId: 'm3', movementType: 'REFUND', concept: 'Devolución reserva #RES-1902', amount: -15000000, paymentMedium: 'TRANSFER', afterClosing: false, registeredAt: '2026-09-01T14:10:00', registeredBy: 'Fernanda Robayo' },
+    { cashMovementId: 'm1', movementType: 'INCOME', concept: 'Pago reserva #RES-1901', amount: 129000000, paymentMedium: 'TRANSFER', afterClosing: false, registeredAt: '2026-09-01T09:20:00', registeredBy: 'Administrador Demo' },
+    { cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Administrador Demo' },
+    { cashMovementId: 'm3', movementType: 'REFUND', concept: 'Devolución reserva #RES-1902', amount: -15000000, paymentMedium: 'TRANSFER', afterClosing: false, registeredAt: '2026-09-01T14:10:00', registeredBy: 'Administrador Demo' },
   ],
   metrics: { income: 129000000, operationalPayments: 0, expenses: 25000000, refunds: 15000000, total: 119000000, expectedCash: 5000000, netTransfers: 114000000 },
 };
@@ -101,7 +101,7 @@ describe('theHeadlineIsTheExpectedCashAndTheTotalIsAskedToTheSource', () => {
     expect(hero).toEqual([
       'Jornada abierta', 'Efectivo esperado al cierre: $50.000.',
       'Total consolidado de la jornada (todos los medios): $1.190.000 · incluye la base de $300.000.',
-      'Apertura operativa por Fernanda Robayo (Administrador del tenant). La base representa solo efectivo físico; el efectivo esperado al cierre es la base más las entradas en efectivo menos las salidas en efectivo.']);
+      'Apertura operativa por Administrador Demo (Administrador del tenant). La base representa solo efectivo físico; el efectivo esperado al cierre es la base más las entradas en efectivo menos las salidas en efectivo.']);
   });
 
   it.each([
@@ -162,9 +162,9 @@ describe('theMovementsTableShowsEachMovementWithItsMedium', () => {
     expect(Array.from(host.querySelectorAll('thead th')).map((th) => flat(th.textContent))).toEqual(['Hora', 'Tipo', 'Concepto', 'Medio', 'Valor', 'Responsable']);
     const rows = Array.from(host.querySelectorAll('tbody tr')).map((tr) => Array.from(tr.querySelectorAll('td')).map((td) => flat(td.textContent)));
     expect(rows).toEqual([
-      ['09:20', 'Ingreso', 'Pago reserva #RES-1901', 'Transferencia', '$1.290.000', 'Fernanda Robayo'],
-      ['11:45', 'Gasto', 'Compra operativa', 'Efectivo', '-$250.000', 'Fernanda Robayo'],
-      ['14:10', 'Devolución', 'Devolución reserva #RES-1902', 'Transferencia', '-$150.000', 'Fernanda Robayo'],
+      ['09:20', 'Ingreso', 'Pago reserva #RES-1901', 'Transferencia', '$1.290.000', 'Administrador Demo'],
+      ['11:45', 'Gasto', 'Compra operativa', 'Efectivo', '-$250.000', 'Administrador Demo'],
+      ['14:10', 'Devolución', 'Devolución reserva #RES-1902', 'Transferencia', '-$150.000', 'Administrador Demo'],
     ]);
     expect(flat(host.textContent)).not.toMatch(LEGACY_CODES);
   });

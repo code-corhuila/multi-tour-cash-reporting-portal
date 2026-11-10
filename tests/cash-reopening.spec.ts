@@ -12,7 +12,7 @@ import { PortalActor } from '../src/app/shared/portal-capabilities';
 
 // HU-CSH-001 (spec 001-, AC-CJ.15): screen 14, admin-caja.html, the panel "Reapertura" · "Reabrir la caja cerrada".
 const CLOSED: CashDay = {
-  businessDate: '2026-09-01', status: 'CLOSED', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Fernanda Robayo (Administrador del tenant)', parametrizedBase: 30000000, movements: [],
+  businessDate: '2026-09-01', status: 'CLOSED', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Administrador Demo (Administrador del tenant)', parametrizedBase: 30000000, movements: [],
   metrics: { income: 0, operationalPayments: 0, expenses: 0, refunds: 0, total: 30000000, expectedCash: 30000000, netTransfers: 0 },
 };
 const flat = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();

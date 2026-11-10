@@ -13,8 +13,8 @@ import { CASH_CONSULTATION_LINKS } from '../src/app/shared/portal-slots';
 
 // HU-CSH-001 (spec 001-, T-04, AC-CJ.9): screen 14, admin-caja.html, the button "Ajustar base diaria" and its panel "Ajuste".
 const DAY: CashDay = {
-  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Fernanda Robayo (Administrador del tenant)',
-  movements: [{ cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Fernanda Robayo' }],
+  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Administrador Demo (Administrador del tenant)',
+  movements: [{ cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Administrador Demo' }],
   metrics: { income: 0, operationalPayments: 0, expenses: 25000000, refunds: 0, total: 5000000, expectedCash: 5000000, netTransfers: 0 },
 };
 const INVALID = 'Registra una base diaria válida.';
