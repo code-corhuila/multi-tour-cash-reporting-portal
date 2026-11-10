@@ -9,7 +9,7 @@ const BASE = '/api/v1/cash-reporting';
 const CURRENT = `${BASE}/cash-days/current`;
 const CLOSURES = (n = 1) => `${BASE}/cash-closures?page=${n}&limit=100`;
 const MOVEMENTS = (date: string) => `${BASE}/cash-days/${date}/movements?page=1&limit=100`;
-const ADMIN = { userId: 'u-1', roleLabel: 'Administrador del tenant', displayName: 'Fernanda Robayo' };
+const ADMIN = { userId: 'u-1', roleLabel: 'Administrador del tenant', displayName: 'Administrador Demo' };
 const ZONE = { businessDate: '2026-09-01', timeZone: 'America/Bogota', cashSessionId: 's-1', status: 'OPEN' };
 
 const CLOSED = {
@@ -35,7 +35,7 @@ const ROUTES = {
   [MOVEMENTS('2026-08-29')]: { ok: page([]) },
   [MOVEMENTS('2026-08-30')]: { ok: page([MOVEMENT('b1', { paymentMedium: 'TRANSFER', amountCents: 20000000 })]) },
 };
-const PORTAL_ACTOR = 'Fernanda Robayo (Administrador del tenant)';
+const PORTAL_ACTOR = 'Administrador Demo (Administrador del tenant)';
 
 describe('cashClosuresApiSourceIsAPortOverTheContainerClient', () => {
   it('is a CashClosuresSource', () => {
