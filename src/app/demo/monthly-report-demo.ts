@@ -14,6 +14,8 @@ export interface CashMovement {
   readonly date: string;
   readonly kind: 'base' | 'income' | 'operational-payment' | 'expense' | 'refund';
   readonly amount: number;
+  /** How an income came in; absent counts as cash, as in the mockup (only "Transferencia" is the other medium). */
+  readonly medium?: 'cash' | 'transfer';
 }
 /** Cancellations and operational costs of a period: seeded stand-ins for the events of other domains (spec 003- section 6, DD-2). */
 export type RegisteredByPeriod = Readonly<Record<string, { readonly cancellations: number; readonly costs: number }>>;
@@ -29,9 +31,12 @@ export function consolidate(movements: readonly CashMovement[], registered: Regi
   return [...new Set([...counted.values()].map((m) => m.date.slice(0, 7)))].sort().reverse().map((period) => {
     const [income, payments, expenses, refunds] = [sum(period, 'income'), sum(period, 'operational-payment'), sum(period, 'expense'), sum(period, 'refund')];
     const { cancellations, costs } = registered[period] ?? NONE;
+    const ofPeriod = [...counted.values()].filter((m) => m.date.startsWith(period));
+    const incomeBy = (medium: 'cash' | 'transfer') => ofPeriod.filter((m) => m.kind === 'income' && (m.medium ?? 'cash') === medium).reduce((total, m) => total + m.amount, 0);
     return {
       reportedPeriod: period, periodIncome: income, operationalPayments: payments, operationalExpenses: expenses, executedRefunds: refunds,
       consolidatedCashTotal: income - payments - expenses - refunds, registeredCancellations: cancellations, registeredOperationalCosts: costs,
+      countedMovements: ofPeriod.length, incomeInCash: incomeBy('cash'), incomeByTransfer: incomeBy('transfer'),
     };
   });
 }
@@ -47,7 +52,7 @@ const SEEDED_SALES = peso(7677400);
 
 const ZERO_PERIOD: MonthlyPeriod = {
   reportedPeriod: REPORT_PERIOD, periodIncome: 0, operationalPayments: 0, operationalExpenses: 0, executedRefunds: 0,
-  consolidatedCashTotal: 0, registeredCancellations: 0, registeredOperationalCosts: 0,
+  consolidatedCashTotal: 0, registeredCancellations: 0, registeredOperationalCosts: 0, countedMovements: 0, incomeInCash: 0, incomeByTransfer: 0,
 };
 
 /** DEMO (spec 003- DD-1): the periods are consolidated from the movements of the cash store (closures and the day alike, so Caja and Reportes never disagree); the fixtures empty-period and failing-monthly are read here only. */
@@ -66,7 +71,7 @@ export class DemoMonthlyReportSource extends MonthlyReportSource {
       ...this.store.closures().map((closure) => ({ date: closure.businessDate, movements: closure.movements })),
       { date: day.businessDate, movements: day.movements },
     ];
-    return dated.flatMap(({ date, movements }) => movements.map((m) => ({ id: m.cashMovementId, date, kind: KINDS[m.movementType], amount: Math.abs(m.amount) })));
+    return dated.flatMap(({ date, movements }) => movements.map((m) => ({ id: m.cashMovementId, date, kind: KINDS[m.movementType], amount: Math.abs(m.amount), medium: m.paymentMedium === 'TRANSFER' ? 'transfer' as const : 'cash' as const })));
   }
 }
 

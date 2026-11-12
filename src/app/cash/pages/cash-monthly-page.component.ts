@@ -24,7 +24,7 @@ import { MonthlyReportSource } from '../data/monthly-report-source';
       <csh-page-state [state]="load.state()" [emptyText]="t.empty">
         @let s = load.state();
         @if (s.kind === 'data') {
-          @for (period of s.items; track period.reportedPeriod) { <section class="csh-cash-panel csh-history-period"><csh-monthly-period [period]="period" /></section> }
+          @for (period of s.items; track period.reportedPeriod) { <section class="csh-cash-panel csh-history-period"><csh-monthly-period [period]="period" [detail]="true" /></section> }
         }
       </csh-page-state>
     </section>
