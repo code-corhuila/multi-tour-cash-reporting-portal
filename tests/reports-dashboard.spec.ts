@@ -105,6 +105,11 @@ describe('reportsHeaderAndHeroFollowTheMockupWithoutExportar', () => {
     expect(formatMonth('sin fecha')).toBe('sin fecha');
   });
 
+  it('theHeroMonthFollowsTheReportDateNotTheBrowserClock: writes the month of a report date far from today (AC-DB.11)', async () => {
+    const { host } = await renderPage(new FixedSource({ ...DAY, reportDate: '2031-02-03' }));
+    expect(flat(host.querySelector('.csh-reports-hero [data-month]')?.textContent)).toBe('Febrero 2031');
+  });
+
   it('leaves the month out while the day is not known', async () => {
     const source = new SourceDouble();
     const { host } = await renderPage(source);

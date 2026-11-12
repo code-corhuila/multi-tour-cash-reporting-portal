@@ -42,6 +42,7 @@ const SPECIFIED_TREE = [
   'src/app/http/cash-correction-api.ts',
   'src/app/http/cash-day-api-source.ts',
   'src/app/http/cash-writers-api.ts',
+  'src/app/http/daily-dashboard-api-source.ts',
   'src/app/reports/components/daily-dashboard.component.ts',
   'src/app/reports/components/monthly-report.component.ts',
   'src/app/reports/components/period-summary.component.ts',
