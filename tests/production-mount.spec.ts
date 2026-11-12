@@ -14,7 +14,8 @@ import { CashPendingClosingWriter } from '../src/app/cash/data/cash-pending-clos
 import { CashReopeningWriter } from '../src/app/cash/data/cash-reopening-writer';
 import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
 import { DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
-import { fakeCashClient, page } from './cash-api-client.double';
+import { PeriodSummarySource } from '../src/app/reports/data/period-summary-source';
+import { fakeCashClient, page, type Reply } from './cash-api-client.double';
 import { CASH_CONSULTATION_LINKS } from '../src/app/shared/portal-slots';
 import { withoutComments } from './source-files';
 
@@ -34,11 +35,14 @@ const CLOSURE = {
   expectedCashCents: 30000000, origin: 'OPERATIONAL_OPENING', hasOperationalOpening: true, closingMode: 'FORMAL', closedBy: { userId: 'u', roleLabel: 'Administrador del tenant' },
   closedAt: '2026-08-31T23:00:00Z', reopenings: [], corrections: [],
 };
-const ROUTES = () => fakeCashClient({
+const DASHBOARD = { reportDate: '2026-09-01', createdReservations: 12, pendingPaymentReservations: 6, confirmedReservations: 18, confirmedWithBalance: 3, cancelledReservations: 2, upcomingServices: 4 };
+const routes = (): Record<string, Reply | Reply[]> => ({
   [`${BASE}/cash-days/current`]: { ok: DAY }, [`${BASE}/cash-days/2026-09-01/movements?page=1&limit=100`]: { ok: page([]) },
   [`${BASE}/cash-days?pendingClosure=true&page=1&limit=1`]: { ok: page([]) },
   [`${BASE}/cash-closures?page=1&limit=100`]: { ok: page([CLOSURE]) }, [`${BASE}/cash-days/2026-08-31/movements?page=1&limit=100`]: { ok: page([]) },
+  [`${BASE}/daily-dashboard`]: { ok: DASHBOARD },
 });
+const ROUTES = () => fakeCashClient(routes());
 
 describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () => {
   it.each(PRODUCTION_FILES)('%s imports nothing from src/app/demo and names no demo store', (file) => {
@@ -48,17 +52,18 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
     expect(code).not.toMatch(/\bDemo[A-Z]\w*|\w+DemoProviders\b/);
   });
 
-  it('the production sources register the read ports and the writers of the opening, the base, the movements, the closing, the pending closing, the reopening and the correction, and call the container client only when a screen asks', () => {
+  it('the production sources register the read ports, the dashboard and the writers of the opening, the base, the movements, the closing, the pending closing, the reopening and the correction, and call the container client only when a screen asks', () => {
     const { client, calls } = ROUTES();
     const providers = sourceProviders(client) as { provide: unknown }[];
     // The panel "Consulta" of the day is composed by the build too (plan D-02): the monthly link draws itself only where its area is offered.
-    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CashCorrectionWriter, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
+    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CashCorrectionWriter, DailyDashboardSource, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
     expect(calls).toEqual([]);
   });
 
-  it('registers no dashboard and no monthly port yet (next branches)', () => {
+  it('registers the dashboard port and no monthly port yet (next branch)', () => {
     const tokens = (sourceProviders(ROUTES().client) as { provide: unknown }[]).map((provider) => provider.provide);
-    for (const absent of [MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
+    expect(tokens).toContain(DailyDashboardSource);
+    for (const absent of [MonthlyReportSource, PeriodSummarySource]) expect(tokens).not.toContain(absent);
   });
 
   it('the demo build is the only one that swaps the sources, through the module:demo configuration', () => {
@@ -96,10 +101,10 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(calls).toEqual([]);
     });
 
-    it('offers the tenant administrator only "Caja": the day from the service with the base action and the movement form and closing, no Reportes', async () => {
+    it('offers the tenant administrator "Caja" and "Reportes": the day from the service with the base action and the movement form and closing', async () => {
       mountAs(['TENANT_ADMINISTRATOR']);
       await vi.waitFor(() => expect(host.querySelector('.csh-cash-hero')).toBeTruthy());
-      expect(Array.from(host.querySelectorAll('.csh-nav button')).map((b) => flat(b.textContent))).toEqual(['Caja']);
+      expect(Array.from(host.querySelectorAll('.csh-nav button')).map((b) => flat(b.textContent))).toEqual(['Caja', 'Reportes']);
       expect(flat(host.querySelector('.csh-cash-hero')?.textContent)).toContain('Efectivo esperado al cierre: $300.000.');
       // The movement form needs the closing writer too (`operable` of the register panel): the closing branch registers it.
       expect(host.querySelectorAll('.csh-cash-register form').length).toBe(1);
@@ -171,6 +176,35 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       (host.querySelector('csh-cash-pending-closure button') as HTMLButtonElement).click();
       await vi.waitFor(() => expect(flat(host.querySelector('#csh-cash-pending-notice')?.textContent)).toContain('cerrada formalmente'));
       expect(calls.find((call) => call.path === `${BASE}/cash-days/2026-08-31/close`)?.init?.method).toBe('POST');
+    });
+
+    const openReportes = async () => {
+      await vi.waitFor(() => expect(Array.from(host.querySelectorAll('.csh-nav button')).map((b) => flat(b.textContent))).toContain('Reportes'));
+      (Array.from(host.querySelectorAll('.csh-nav button')).find((b) => flat(b.textContent) === 'Reportes') as HTMLButtonElement).click();
+    };
+
+    it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('productionMountOffersReportesWhenTheAdapterIsRegistered: %s reads the dashboard with one GET and no tenant (AC-DB.9)', async (role) => {
+      const { client, calls } = ROUTES();
+      mountAs([role], client);
+      await openReportes();
+      await vi.waitFor(() => expect(host.querySelector('dl.csh-reports-metrics')).toBeTruthy());
+      expect(Array.from(host.querySelectorAll('.csh-reports-metric')).map((row) => flat(row.querySelector('.csh-reports-value')?.textContent))).toEqual(['12', '6', '18', '3', '2', '4']);
+      expect(calls.filter((call) => call.path.endsWith('/daily-dashboard'))).toEqual([{ path: `${BASE}/daily-dashboard`, init: undefined }]);
+    });
+
+    it('shows the generic error with "Reintentar" when the dashboard is refused, with no status or code on the screen, and reads again on retry (AC-DB.10)', async () => {
+      const { client, calls } = fakeCashClient({
+        ...routes(),
+        [`${BASE}/daily-dashboard`]: [{ fail: { status: 500, code: 'INTERNAL_ERROR', message: 'boom', traceId: 'trace-9' } }, { ok: DASHBOARD }],
+      });
+      mountAs(['TENANT_ADMINISTRATOR'], client);
+      await openReportes();
+      await vi.waitFor(() => expect(host.querySelector('[role="alert"]')).toBeTruthy());
+      expect(flat(host.querySelector('[role="alert"]')?.textContent)).toContain('No se pudo completar la solicitud.');
+      expect(flat(host.textContent)).not.toMatch(/500|INTERNAL_ERROR|trace-9|boom/);
+      (Array.from(host.querySelectorAll('button')).find((b) => flat(b.textContent) === 'Reintentar') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(host.querySelector('dl.csh-reports-metrics')).toBeTruthy());
+      expect(calls.filter((call) => call.path.endsWith('/daily-dashboard')).length).toBe(2);
     });
 
     it('a role that only reads gets neither the form nor the closing', async () => {
