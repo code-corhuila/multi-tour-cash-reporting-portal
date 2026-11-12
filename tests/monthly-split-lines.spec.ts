@@ -25,7 +25,7 @@ class Fixed extends MonthlyReportSource {
 afterEach(() => TestBed.resetTestingModule());
 
 async function render<T>(component: new () => T, list: readonly MonthlyPeriod[]) {
-  TestBed.configureTestingModule({ providers: [{ provide: MonthlyReportSource, useValue: new Fixed(list) }, { provide: PortalNavigation, useValue: { open: () => undefined } }] });
+  TestBed.configureTestingModule({ providers: [{ provide: MonthlyReportSource, useValue: new Fixed(list) }, { provide: PortalNavigation, useValue: { open: () => undefined, has: () => false } }] });
   const fixture = TestBed.createComponent(component);
   for (let i = 0; i < 4; i += 1) { fixture.detectChanges(); await fixture.whenStable(); }
   const host: HTMLElement = fixture.nativeElement;
