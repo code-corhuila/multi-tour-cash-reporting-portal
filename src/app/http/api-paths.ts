@@ -7,6 +7,8 @@ export const currentCashDayPath = (): string => `${API_BASE}/cash-days/current`;
 export const cashDayPath = (businessDate: string): string => `${API_BASE}/cash-days/${businessDate}`;
 export const cashClosuresPath = (): string => `${API_BASE}/cash-closures`;
 export const cashMovementsPath = (businessDate: string): string => `${cashDayPath(businessDate)}/movements`;
+/** The six indicators of today (getDailyDashboard); the service decides the day and the tenant, so no argument. */
+export const dailyDashboardPath = (): string => `${API_BASE}/daily-dashboard`;
 /** The days opened and never closed, most recent first (listCashDays); the caller adds `page` and `limit`. */
 export const pendingCashDaysPath = (): string => `${API_BASE}/cash-days?pendingClosure=true`;
 
