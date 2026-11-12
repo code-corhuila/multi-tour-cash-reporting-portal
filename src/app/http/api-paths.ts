@@ -9,6 +9,10 @@ export const cashClosuresPath = (): string => `${API_BASE}/cash-closures`;
 export const cashMovementsPath = (businessDate: string): string => `${cashDayPath(businessDate)}/movements`;
 /** The six indicators of today (getDailyDashboard); the service decides the day and the tenant, so no argument. */
 export const dailyDashboardPath = (): string => `${API_BASE}/daily-dashboard`;
+/** The periods of the monthly report with the split of the income (listMonthlyConsolidations); the caller adds `page` and `limit`, and the service decides the tenant. */
+export const monthlyConsolidationsPath = (): string => `${API_BASE}/monthly-consolidations`;
+/** The summary row of the latest period (getMonthlyReportSummary); no `period`, the service answers its latest. */
+export const monthlyReportSummaryPath = (): string => `${API_BASE}/monthly-reports/summary`;
 /** The days opened and never closed, most recent first (listCashDays); the caller adds `page` and `limit`. */
 export const pendingCashDaysPath = (): string => `${API_BASE}/cash-days?pendingClosure=true`;
 

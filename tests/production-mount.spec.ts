@@ -16,7 +16,7 @@ import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source'
 import { DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
 import { PeriodSummarySource } from '../src/app/reports/data/period-summary-source';
 import { fakeCashClient, page, type Reply } from './cash-api-client.double';
-import { CASH_CONSULTATION_LINKS } from '../src/app/shared/portal-slots';
+import { CASH_CONSULTATION_LINKS, REPORTS_MONTHLY_BLOCKS } from '../src/app/shared/portal-slots';
 import { withoutComments } from './source-files';
 
 // RN-CJ9 and the micro spec (D-CSH-03): demo data reaches only the demo build, which swaps
@@ -36,11 +36,18 @@ const CLOSURE = {
   closedAt: '2026-08-31T23:00:00Z', reopenings: [], corrections: [],
 };
 const DASHBOARD = { reportDate: '2026-09-01', createdReservations: 12, pendingPaymentReservations: 6, confirmedReservations: 18, confirmedWithBalance: 3, cancelledReservations: 2, upcomingServices: 4 };
+const PERIOD = {
+  reportedPeriod: '2026-09', periodIncomeCents: 129000000, operationalPaymentsCents: 0, operationalExpensesCents: 25000000, executedRefundsCents: 15000000,
+  consolidatedCashTotalCents: 89000000, registeredCancellations: 2, registeredOperationalCostsCents: 48000000,
+  individualMovementsCounted: 3, cashIncomeCents: 0, transferIncomeCents: 129000000,
+};
+const MONTHLY_SUMMARY = { reportedPeriod: '2026-09', confirmedSalesCents: 415000000, periodIncomeCents: 129000000, operationalCostsCents: 48000000, cancellations: 2 };
 const routes = (): Record<string, Reply | Reply[]> => ({
   [`${BASE}/cash-days/current`]: { ok: DAY }, [`${BASE}/cash-days/2026-09-01/movements?page=1&limit=100`]: { ok: page([]) },
   [`${BASE}/cash-days?pendingClosure=true&page=1&limit=1`]: { ok: page([]) },
   [`${BASE}/cash-closures?page=1&limit=100`]: { ok: page([CLOSURE]) }, [`${BASE}/cash-days/2026-08-31/movements?page=1&limit=100`]: { ok: page([]) },
   [`${BASE}/daily-dashboard`]: { ok: DASHBOARD },
+  [`${BASE}/monthly-consolidations?page=1&limit=100`]: { ok: page([PERIOD]) }, [`${BASE}/monthly-reports/summary`]: { ok: MONTHLY_SUMMARY },
 });
 const ROUTES = () => fakeCashClient(routes());
 
@@ -56,14 +63,13 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
     const { client, calls } = ROUTES();
     const providers = sourceProviders(client) as { provide: unknown }[];
     // The panel "Consulta" of the day is composed by the build too (plan D-02): the monthly link draws itself only where its area is offered.
-    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CashCorrectionWriter, DailyDashboardSource, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
+    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CashCorrectionWriter, DailyDashboardSource, MonthlyReportSource, PeriodSummarySource, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS, REPORTS_MONTHLY_BLOCKS, REPORTS_MONTHLY_BLOCKS]);
     expect(calls).toEqual([]);
   });
 
-  it('registers the dashboard port and no monthly port yet (next branch)', () => {
+  it('registers the dashboard port and the two monthly ports, each over the container client (AC-RM.8)', () => {
     const tokens = (sourceProviders(ROUTES().client) as { provide: unknown }[]).map((provider) => provider.provide);
-    expect(tokens).toContain(DailyDashboardSource);
-    for (const absent of [MonthlyReportSource, PeriodSummarySource]) expect(tokens).not.toContain(absent);
+    for (const present of [DailyDashboardSource, MonthlyReportSource, PeriodSummarySource]) expect(tokens).toContain(present);
   });
 
   it('the demo build is the only one that swaps the sources, through the module:demo configuration', () => {
@@ -112,7 +118,7 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(host.querySelector('csh-cash-reopening')).toBeNull();
       expect(flat(host.querySelector('.csh-cash-header button')?.textContent)).toBe('Ajustar base diaria');
       const links = Array.from(host.querySelectorAll('.csh-cash-links button')).map((b) => flat(b.textContent));
-      expect(links).toEqual(['Historial de caja']);
+      expect(links).toEqual(['Historial de caja', 'Consolidación mensual']);
     });
 
     it('closes the day from the screen through the container client: POST close with its Idempotency-Key, then the day is read again', async () => {
@@ -205,6 +211,45 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       (Array.from(host.querySelectorAll('button')).find((b) => flat(b.textContent) === 'Reintentar') as HTMLButtonElement).click();
       await vi.waitFor(() => expect(host.querySelector('dl.csh-reports-metrics')).toBeTruthy());
       expect(calls.filter((call) => call.path.endsWith('/daily-dashboard')).length).toBe(2);
+    });
+
+    it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('productionMountOffersTheMonthlyViewsWhenTheAdaptersAreRegistered: %s reads the periods and the summary and no tenant (AC-RM.8)', async (role) => {
+      const { client, calls } = ROUTES();
+      mountAs([role], client);
+      await openReportes();
+      await vi.waitFor(() => expect(host.querySelector('csh-monthly-period')).toBeTruthy());
+      await vi.waitFor(() => expect(host.querySelector('.csh-monthly-metric')).toBeTruthy());
+      expect(flat(host.querySelector('csh-monthly-period h3')?.textContent)).toBe('Septiembre 2026');
+      expect(flat(host.querySelector('.csh-monthly-metric .csh-reports-value')?.textContent)).toBe('$4.150.000');
+      const monthly = calls.filter((call) => call.path.includes('/monthly-'));
+      expect(monthly.map((call) => call.path).sort()).toEqual([`${BASE}/monthly-consolidations?page=1&limit=100`, `${BASE}/monthly-reports/summary`]);
+      expect(JSON.stringify(monthly).toLowerCase()).not.toContain('tenant');
+    });
+
+    it('offers the sub-screen "Consolidación mensual" from the day to the Administrador, reading the periods of the service (AC-RM.8)', async () => {
+      mountAs(['TENANT_ADMINISTRATOR']);
+      await vi.waitFor(() => expect(host.querySelectorAll('.csh-cash-links button').length).toBe(2));
+      (host.querySelectorAll('.csh-cash-links button')[1] as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(host.querySelector('#csh-monthly-title')).toBeTruthy());
+      await vi.waitFor(() => expect(host.querySelector('csh-monthly-period')).toBeTruthy());
+      expect(flat(host.querySelector('#csh-monthly-title')?.textContent)).toBe('Consolidación mensual');
+      expect(flat(host.querySelector('csh-monthly-period h3')?.textContent)).toBe('Septiembre 2026');
+    });
+
+    it('shows the generic error with "Reintentar" in the monthly block only when the periods are refused, with no status or traceId (AC-RM.10)', async () => {
+      const { client } = fakeCashClient({
+        ...routes(),
+        [`${BASE}/monthly-consolidations?page=1&limit=100`]: [{ fail: { status: 500, code: 'INTERNAL_ERROR', message: 'boom', traceId: 'trace-7' } }, { ok: page([PERIOD]) }],
+      });
+      mountAs(['TENANT_ADMINISTRATOR'], client);
+      await openReportes();
+      await vi.waitFor(() => expect(host.querySelector('[role="alert"]')).toBeTruthy());
+      await vi.waitFor(() => expect(host.querySelector('dl.csh-reports-metrics')).toBeTruthy());
+      expect(host.querySelectorAll('[role="alert"]').length).toBe(1);
+      expect(flat(host.querySelector('[role="alert"]')?.textContent)).toContain('No se pudo completar la solicitud.');
+      expect(flat(host.textContent)).not.toMatch(/500|INTERNAL_ERROR|trace-7|boom/);
+      (Array.from(host.querySelectorAll('button')).find((b) => flat(b.textContent) === 'Reintentar') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(host.querySelector('csh-monthly-period')).toBeTruthy());
     });
 
     it('a role that only reads gets neither the form nor the closing', async () => {
