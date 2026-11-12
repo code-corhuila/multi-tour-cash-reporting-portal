@@ -14,7 +14,11 @@ import { CashPendingClosingWriter } from '../src/app/cash/data/cash-pending-clos
 import { CashReopeningWriter } from '../src/app/cash/data/cash-reopening-writer';
 import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
 import { DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
-import { fakeCashClient, page } from './cash-api-client.double';
+import { PeriodSummarySource } from '../src/app/reports/data/period-summary-source';
+import { ReportsPageComponent } from '../src/app/reports/pages/reports-page.component';
+import { REPORTS_MONTHLY_BLOCKS } from '../src/app/shared/portal-slots';
+import { TestBed } from '@angular/core/testing';
+import { fakeCashClient, page, type Reply } from './cash-api-client.double';
 import { CASH_CONSULTATION_LINKS } from '../src/app/shared/portal-slots';
 import { withoutComments } from './source-files';
 
@@ -34,11 +38,19 @@ const CLOSURE = {
   expectedCashCents: 30000000, origin: 'OPERATIONAL_OPENING', hasOperationalOpening: true, closingMode: 'FORMAL', closedBy: { userId: 'u', roleLabel: 'Administrador del tenant' },
   closedAt: '2026-08-31T23:00:00Z', reopenings: [], corrections: [],
 };
-const ROUTES = () => fakeCashClient({
+const PERIOD = {
+  reportedPeriod: '2026-09', periodIncomeCents: 129000000, operationalPaymentsCents: 0, operationalExpensesCents: 25000000, executedRefundsCents: 15000000,
+  consolidatedCashTotalCents: 89000000, registeredCancellations: 2, registeredOperationalCostsCents: 48000000,
+  individualMovementsCounted: 4, cashIncomeCents: 0, transferIncomeCents: 129000000,
+};
+const SUMMARY = { reportedPeriod: '2026-09', confirmedSalesCents: 415000000, periodIncomeCents: 129000000, operationalCostsCents: 48000000, cancellations: 2 };
+const routes = (): Record<string, Reply | Reply[]> => ({
   [`${BASE}/cash-days/current`]: { ok: DAY }, [`${BASE}/cash-days/2026-09-01/movements?page=1&limit=100`]: { ok: page([]) },
   [`${BASE}/cash-days?pendingClosure=true&page=1&limit=1`]: { ok: page([]) },
   [`${BASE}/cash-closures?page=1&limit=100`]: { ok: page([CLOSURE]) }, [`${BASE}/cash-days/2026-08-31/movements?page=1&limit=100`]: { ok: page([]) },
+  [`${BASE}/monthly-consolidations?page=1&limit=100`]: { ok: page([PERIOD]) }, [`${BASE}/monthly-reports/summary`]: { ok: SUMMARY },
 });
+const ROUTES = () => fakeCashClient(routes());
 
 describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () => {
   it.each(PRODUCTION_FILES)('%s imports nothing from src/app/demo and names no demo store', (file) => {
@@ -48,17 +60,18 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
     expect(code).not.toMatch(/\bDemo[A-Z]\w*|\w+DemoProviders\b/);
   });
 
-  it('the production sources register the read ports and the writers of the opening, the base, the movements, the closing, the pending closing, the reopening and the correction, and call the container client only when a screen asks', () => {
+  it('the production sources register the read ports, the two monthly ports and the writers of the opening, the base, the movements, the closing, the pending closing, the reopening and the correction, and call the container client only when a screen asks', () => {
     const { client, calls } = ROUTES();
     const providers = sourceProviders(client) as { provide: unknown }[];
     // The panel "Consulta" of the day is composed by the build too (plan D-02): the monthly link draws itself only where its area is offered.
-    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CashCorrectionWriter, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS]);
+    expect(providers.map((provider) => provider.provide)).toEqual([CashDaySource, CashClosuresSource, CashOpeningWriter, CashBaseWriter, CashMovementWriter, CashClosingWriter, CashPendingClosingWriter, CashReopeningWriter, CashCorrectionWriter, MonthlyReportSource, PeriodSummarySource, CASH_CONSULTATION_LINKS, CASH_CONSULTATION_LINKS, REPORTS_MONTHLY_BLOCKS, REPORTS_MONTHLY_BLOCKS]);
     expect(calls).toEqual([]);
   });
 
-  it('registers no dashboard and no monthly port yet (next branches)', () => {
+  it('registers the two monthly ports and no dashboard port yet (the dashboard has its own branch)', () => {
     const tokens = (sourceProviders(ROUTES().client) as { provide: unknown }[]).map((provider) => provider.provide);
-    for (const absent of [MonthlyReportSource, DailyDashboardSource]) expect(tokens).not.toContain(absent);
+    for (const present of [MonthlyReportSource, PeriodSummarySource]) expect(tokens).toContain(present);
+    expect(tokens).not.toContain(DailyDashboardSource);
   });
 
   it('the demo build is the only one that swaps the sources, through the module:demo configuration', () => {
@@ -107,7 +120,7 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(host.querySelector('csh-cash-reopening')).toBeNull();
       expect(flat(host.querySelector('.csh-cash-header button')?.textContent)).toBe('Ajustar base diaria');
       const links = Array.from(host.querySelectorAll('.csh-cash-links button')).map((b) => flat(b.textContent));
-      expect(links).toEqual(['Historial de caja']);
+      expect(links).toEqual(['Historial de caja', 'Consolidación mensual']);
     });
 
     it('closes the day from the screen through the container client: POST close with its Idempotency-Key, then the day is read again', async () => {
@@ -173,6 +186,34 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(calls.find((call) => call.path === `${BASE}/cash-days/2026-08-31/close`)?.init?.method).toBe('POST');
     });
 
+    it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('productionMountOffersTheMonthlyViewsWhenTheAdaptersAreRegistered: %s opens "Consolidación mensual", read with GET and no tenant (AC-RM.8)', async (role) => {
+      const { client, calls } = ROUTES();
+      mountAs([role], client);
+      await vi.waitFor(() => expect(Array.from(host.querySelectorAll('.csh-cash-links button')).map((b) => flat(b.textContent))).toContain('Consolidación mensual'));
+      (Array.from(host.querySelectorAll('.csh-cash-links button')).find((b) => flat(b.textContent) === 'Consolidación mensual') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(host.querySelector('.csh-monthly-period')).toBeTruthy());
+      expect(flat(host.querySelector('.csh-monthly-heading')?.textContent)).toBe('Septiembre 2026');
+      expect(flat(host.querySelector('.csh-monthly-lines')?.textContent)).toContain('$890.000');
+      expect(calls.filter((call) => call.path.includes('monthly'))).toEqual([{ path: `${BASE}/monthly-consolidations?page=1&limit=100`, init: undefined }]);
+      expect(JSON.stringify(calls).toLowerCase()).not.toContain('tenant');
+    });
+
+    it('shows the generic error with "Reintentar" on the sub-screen when the periods are refused, with no status on the screen, and reads again on retry (AC-RM.10)', async () => {
+      const { client, calls } = fakeCashClient({
+        ...routes(),
+        [`${BASE}/monthly-consolidations?page=1&limit=100`]: [{ fail: { status: 403, code: 'FORBIDDEN', message: 'no', traceId: 'trace-7' } }, { ok: page([PERIOD]) }],
+      });
+      mountAs(['MANAGER'], client);
+      await vi.waitFor(() => expect(Array.from(host.querySelectorAll('.csh-cash-links button')).length).toBe(2));
+      (Array.from(host.querySelectorAll('.csh-cash-links button')).find((b) => flat(b.textContent) === 'Consolidación mensual') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(host.querySelector('[role="alert"]')).toBeTruthy());
+      expect(flat(host.querySelector('[role="alert"]')?.textContent)).toContain('No se pudo completar la solicitud.');
+      expect(flat(host.textContent)).not.toMatch(/403|FORBIDDEN|trace-7/);
+      (Array.from(host.querySelectorAll('button')).find((b) => flat(b.textContent) === 'Reintentar') as HTMLButtonElement).click();
+      await vi.waitFor(() => expect(host.querySelector('.csh-monthly-period')).toBeTruthy());
+      expect(calls.filter((call) => call.path.includes('monthly-consolidations')).length).toBe(2);
+    });
+
     it('a role that only reads gets neither the form nor the closing', async () => {
       mountAs(['MANAGER']);
       await vi.waitFor(() => expect(host.querySelector('.csh-cash-hero')).toBeTruthy());
@@ -203,5 +244,33 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       retry.click();
       await vi.waitFor(() => expect(host.querySelector('.csh-cash-hero')).toBeTruthy());
     });
+  });
+});
+
+describe('theTwoBlocksOfReportesOverTheProductionSources', () => {
+  const mountReports = async (table: Record<string, Reply | Reply[]>) => {
+    const { client, calls } = fakeCashClient(table);
+    TestBed.configureTestingModule({ providers: [
+      ...(sourceProviders(client) as never[]),
+      { provide: DailyDashboardSource, useValue: { today: () => Promise.resolve({ reportDate: '2026-09-01', createdReservations: 0, pendingPaymentReservations: 0, confirmedReservations: 0, confirmedWithBalance: 0, cancelledReservations: 0, upcomingServices: 0 }) } },
+    ] });
+    const fixture = TestBed.createComponent(ReportsPageComponent);
+    for (let i = 0; i < 4; i += 1) { fixture.detectChanges(); await fixture.whenStable(); }
+    return { host: fixture.nativeElement as HTMLElement, calls };
+  };
+  const text = (host: HTMLElement, selector: string) => (host.querySelector(selector)?.textContent ?? '').replace(/\s+/g, ' ').trim();
+
+  it('draws the summary row and the article from the adapters, each read once with no period (AC-RM.8)', async () => {
+    const { host, calls } = await mountReports(routes());
+    expect(Array.from(host.querySelectorAll('.csh-monthly-metric .csh-reports-value')).map((e) => (e.textContent ?? '').trim())).toEqual(['$4.150.000', '$1.290.000', '$480.000', '2']);
+    expect(text(host, '.csh-monthly-heading')).toBe('Septiembre 2026');
+    expect(calls.map((call) => call.path).sort()).toEqual([`${BASE}/monthly-consolidations?page=1&limit=100`, `${BASE}/monthly-reports/summary`]);
+  });
+
+  it('a refused summary shows its own error and leaves the article of periods untouched (AC-RM.10)', async () => {
+    const { host } = await mountReports({ ...routes(), [`${BASE}/monthly-reports/summary`]: { fail: { status: 500, code: 'INTERNAL_ERROR', message: 'x', traceId: 't' } } });
+    expect(host.querySelectorAll('[role="alert"]').length).toBe(1);
+    expect(host.querySelector('.csh-monthly-summary [role="alert"]')).toBeTruthy();
+    expect(text(host, '.csh-monthly-heading')).toBe('Septiembre 2026');
   });
 });
