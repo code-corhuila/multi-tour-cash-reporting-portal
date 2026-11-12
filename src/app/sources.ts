@@ -4,6 +4,7 @@ import { CashClosuresSource } from './cash/data/cash-closures-source';
 import { CashBaseWriter } from './cash/data/cash-base-writer';
 import { CashClosingWriter } from './cash/data/cash-closing-writer';
 import { CashCorrectionWriter } from './cash/data/cash-correction-writer';
+import { MonthlyReportSource } from './cash/data/monthly-report-source';
 import { CashDaySource } from './cash/data/cash-day-source';
 import { CashMovementWriter } from './cash/data/cash-movement-writer';
 import { CashOpeningWriter } from './cash/data/cash-opening-writer';
@@ -13,14 +14,18 @@ import { CashClosingApiWriter, CashPendingClosingApiWriter, CashReopeningApiWrit
 import { CashClosuresApiSource } from './http/cash-closures-api-source';
 import { CashCorrectionApiWriter } from './http/cash-correction-api';
 import { CashDayApiSource } from './http/cash-day-api-source';
+import { MonthlyReportApiSource } from './http/monthly-report-api-source';
+import { PeriodSummaryApiSource } from './http/period-summary-api-source';
 import { CashBaseApiWriter, CashMovementApiWriter, CashOpeningApiWriter } from './http/cash-writers-api';
+import { PeriodSummarySource } from './reports/data/period-summary-source';
+import { reportsMonthlySlotProviders } from './reports/reports-monthly-slots';
 import { PortalCapabilities } from './shared/portal-capabilities';
 import { PortalApiClient } from './shell-contract';
 
 /**
  * Production: one adapter per port over the container client (micro plan D-CSH-02). Registered so far: the READ ports of the day and the
- * closures (HU-CSH-001 A1, branch 1) and the writers of the opening, the base and the movements (branch 2) and of the closing, the pending closing and the reopening (branch 3) and of the correction (TD-12). The dashboard
- * and monthly report have none yet, so their areas are not offered (`has` in portal-areas) and the actions of a screen whose
+ * closures (HU-CSH-001 A1, branch 1) and the writers of the opening, the base and the movements (branch 2) and of the closing, the pending closing and the reopening (branch 3) and of the correction (TD-12). The monthly report and its summary read through their adapters (HU-CSH-003). The dashboard
+ * has none yet, so its area is not offered (`has` in portal-areas) and the actions of a screen whose
  * writer is missing are not drawn.
  */
 export function sourceProviders(client: PortalApiClient): Provider[] {
@@ -35,6 +40,10 @@ export function sourceProviders(client: PortalApiClient): Provider[] {
     { provide: CashPendingClosingWriter, useValue: new CashPendingClosingApiWriter(client) },
     { provide: CashReopeningWriter, useValue: new CashReopeningApiWriter(client) },
     { provide: CashCorrectionWriter, useValue: new CashCorrectionApiWriter(client) },
+    // HU-CSH-003: the sub-screen of Caja and the two blocks of Reportes appear by themselves, because they ask for these ports (`has`).
+    { provide: MonthlyReportSource, useValue: new MonthlyReportApiSource(client) },
+    { provide: PeriodSummarySource, useValue: new PeriodSummaryApiSource(client) },
     ...cashConsultationSlotProviders(),
+    ...reportsMonthlySlotProviders(),
   ];
 }
