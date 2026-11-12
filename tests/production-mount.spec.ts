@@ -118,7 +118,7 @@ describe('productionMountRegistersNoDemoAndOffersOnlyWhatItsAdaptersServe', () =
       expect(host.querySelector('csh-cash-reopening')).toBeNull();
       expect(flat(host.querySelector('.csh-cash-header button')?.textContent)).toBe('Ajustar base diaria');
       const links = Array.from(host.querySelectorAll('.csh-cash-links button')).map((b) => flat(b.textContent));
-      expect(links).toEqual(['Historial de caja']);
+      expect(links).toEqual(['Historial de caja', 'Consolidación mensual']);
     });
 
     it('closes the day from the screen through the container client: POST close with its Idempotency-Key, then the day is read again', async () => {
