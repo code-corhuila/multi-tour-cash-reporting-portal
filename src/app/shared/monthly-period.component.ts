@@ -3,7 +3,10 @@ import { MonthlyPeriod } from './monthly-period';
 import { formatCop, formatMonth } from './format';
 import { MONTHLY_PERIOD_COPY } from './monthly-period-copy';
 
-/** One period of the monthly report: the month and its seven lines, exactly as the source gave them (RN-RM1); it computes none. */
+/**
+ * One period of the monthly report: the month and its seven lines, exactly as the source gave them (RN-RM1); it computes none. With `detail` and a
+ * period that carries the split, the three lines of the consolidation of Caja are drawn as the mockup orders them (plan D-10); Reportes never asks.
+ */
 @Component({
   selector: 'csh-monthly-period',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +25,7 @@ import { MONTHLY_PERIOD_COPY } from './monthly-period-copy';
 })
 export class MonthlyPeriodComponent {
   readonly period = input.required<MonthlyPeriod>();
+  readonly detail = input(false);
   protected readonly t = MONTHLY_PERIOD_COPY;
 
   protected headingId(): string { return `csh-monthly-${this.period().reportedPeriod}`; }
@@ -29,8 +33,11 @@ export class MonthlyPeriodComponent {
 
   protected lines(): readonly { label: string; value: string }[] {
     const p = this.period();
+    const split = this.detail() && p.countedMovements !== undefined && p.incomeInCash !== undefined && p.incomeByTransfer !== undefined;
     return [
+      ...(split ? [{ label: this.t.counted, value: String(p.countedMovements) }] : []),
       { label: this.t.income, value: formatCop(p.periodIncome) },
+      ...(split ? [{ label: this.t.cash, value: formatCop(p.incomeInCash!) }, { label: this.t.transfer, value: formatCop(p.incomeByTransfer!) }] : []),
       { label: this.t.payments, value: formatCop(p.operationalPayments) },
       { label: this.t.expenses, value: formatCop(p.operationalExpenses) },
       { label: this.t.refunds, value: formatCop(p.executedRefunds) },
