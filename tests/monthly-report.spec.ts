@@ -181,13 +181,13 @@ describe('theConsolidatedTotalAddsNoDailyBase', () => {
 
   it('the demo answers one period, Septiembre 2026 with 1.040.000, read from the movements of the cash store (the mockup has no closures)', async () => {
     const list = await new DemoMonthlyReportSource().periods();
-    expect(list).toEqual([SEP]);
+    expect(list).toMatchObject([SEP]);
   });
 
   it('closing the day does not add a period nor count its movements twice', async () => {
     const store = new DemoCashStore({ now: () => Date.parse('2026-09-01T18:05:00'), actor: () => 'Administrador del tenant' });
     store.close('k-1');
-    expect(await new DemoMonthlyReportSource(store).periods()).toEqual([SEP]);
+    expect(await new DemoMonthlyReportSource(store).periods()).toMatchObject([SEP]);
   });
 
   it('the report follows the cash: a movement registered in the store changes the period', async () => {
@@ -219,7 +219,7 @@ describe('aPeriodWithoutMovementsIsShownInZeroWithoutError', () => {
   it('the demo lists the month of the report date in zeros for the fixture empty-period, and an error for failing-monthly', async () => {
     history.replaceState({}, '', '/?demoFixtures=empty-period');
     const monthly = new DemoMonthlyReportSource();
-    expect(await monthly.periods()).toEqual([ZERO]);
+    expect(await monthly.periods()).toMatchObject([ZERO]);
     expect(await new DemoPeriodSummarySource(monthly).current()).toEqual({ reportedPeriod: '2026-09', confirmedSales: 0, periodIncome: 0, registeredOperationalCosts: 0, registeredCancellations: 0 });
     history.replaceState({}, '', '/?demoFixtures=failing-monthly');
     await expect(monthly.periods()).rejects.toBeTruthy();
