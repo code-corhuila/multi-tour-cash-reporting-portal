@@ -222,7 +222,7 @@ describe('aPeriodWithoutMovementsIsShownInZeroWithoutError', () => {
   it('the demo lists the month of the report date in zeros for the fixture empty-period, and an error for failing-monthly', async () => {
     history.replaceState({}, '', '/?demoFixtures=empty-period');
     const monthly = new DemoMonthlyReportSource();
-    expect(await monthly.periods()).toEqual([ZERO]);
+    expect(await monthly.periods()).toEqual([{ ...ZERO, countedMovements: 0, incomeInCash: 0, incomeByTransfer: 0 }]);
     expect(await new DemoPeriodSummarySource(monthly).current()).toEqual({ reportedPeriod: '2026-09', confirmedSales: 0, periodIncome: 0, registeredOperationalCosts: 0, registeredCancellations: 0 });
     history.replaceState({}, '', '/?demoFixtures=failing-monthly');
     await expect(monthly.periods()).rejects.toBeTruthy();
