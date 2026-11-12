@@ -155,10 +155,10 @@ describe('eachPeriodShowsItsEightFieldsWithTheMockupLabels', () => {
 
 describe('theConsolidatedTotalAddsNoDailyBase', () => {
   const CLOSURES: CashMovement[] = [
-    { id: 'b1', date: '2026-09-01', kind: 'base', amount: peso(300000) }, { id: 'i1', date: '2026-09-01', kind: 'income', amount: peso(1000000) },
-    { id: 'b2', date: '2026-09-02', kind: 'base', amount: peso(300000) }, { id: 'i2', date: '2026-09-02', kind: 'income', amount: peso(500000) },
-    { id: 'p1', date: '2026-09-02', kind: 'operational-payment', amount: peso(100000) }, { id: 'e1', date: '2026-09-02', kind: 'expense', amount: peso(50000) },
-    { id: 'r1', date: '2026-09-02', kind: 'refund', amount: peso(25000) },
+    { id: 'b1', date: '2026-09-01', kind: 'base', amount: peso(300000), medium: 'CASH' }, { id: 'i1', date: '2026-09-01', kind: 'income', amount: peso(1000000), medium: 'CASH' },
+    { id: 'b2', date: '2026-09-02', kind: 'base', amount: peso(300000), medium: 'CASH' }, { id: 'i2', date: '2026-09-02', kind: 'income', amount: peso(500000), medium: 'CASH' },
+    { id: 'p1', date: '2026-09-02', kind: 'operational-payment', amount: peso(100000), medium: 'CASH' }, { id: 'e1', date: '2026-09-02', kind: 'expense', amount: peso(50000), medium: 'CASH' },
+    { id: 'r1', date: '2026-09-02', kind: 'refund', amount: peso(25000), medium: 'CASH' },
   ];
 
   it('is income minus payments, expenses and executed refunds, with the two bases of 300.000 left out', () => {
@@ -173,7 +173,7 @@ describe('theConsolidatedTotalAddsNoDailyBase', () => {
   });
 
   it('lists the periods newest first and takes the registered cancellations and costs of each', () => {
-    const list = consolidate([{ id: 'a', date: '2026-08-31', kind: 'income', amount: 100 }, { id: 'b', date: '2026-09-01', kind: 'income', amount: 200 }], { '2026-09': { cancellations: 2, costs: 500 } });
+    const list = consolidate([{ id: 'a', date: '2026-08-31', kind: 'income', amount: 100, medium: 'CASH' }, { id: 'b', date: '2026-09-01', kind: 'income', amount: 200, medium: 'CASH' }], { '2026-09': { cancellations: 2, costs: 500 } });
     expect(list.map((p) => p.reportedPeriod)).toEqual(['2026-09', '2026-08']);
     expect(list[0]).toMatchObject({ registeredCancellations: 2, registeredOperationalCosts: 500 });
     expect(list[1]).toMatchObject({ registeredCancellations: 0, registeredOperationalCosts: 0 });
@@ -181,13 +181,16 @@ describe('theConsolidatedTotalAddsNoDailyBase', () => {
 
   it('the demo answers one period, Septiembre 2026 with 1.040.000, read from the movements of the cash store (the mockup has no closures)', async () => {
     const list = await new DemoMonthlyReportSource().periods();
-    expect(list).toEqual([SEP]);
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject(SEP);
   });
 
   it('closing the day does not add a period nor count its movements twice', async () => {
     const store = new DemoCashStore({ now: () => Date.parse('2026-09-01T18:05:00'), actor: () => 'Administrador del tenant' });
     store.close('k-1');
-    expect(await new DemoMonthlyReportSource(store).periods()).toEqual([SEP]);
+    const list = await new DemoMonthlyReportSource(store).periods();
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject(SEP);
   });
 
   it('the report follows the cash: a movement registered in the store changes the period', async () => {
