@@ -9,6 +9,10 @@ export const cashClosuresPath = (): string => `${API_BASE}/cash-closures`;
 export const cashMovementsPath = (businessDate: string): string => `${cashDayPath(businessDate)}/movements`;
 /** The six indicators of today (getDailyDashboard); the service decides the day and the tenant, so no argument. */
 export const dailyDashboardPath = (): string => `${API_BASE}/daily-dashboard`;
+/** The periods with the three lines of the consolidation (listMonthlyConsolidations), which both screens read; the caller adds `page` and `limit`. */
+export const monthlyConsolidationsPath = (): string => `${API_BASE}/monthly-consolidations`;
+/** The summary row of the latest period (getMonthlyReportSummary); no `period`, the service answers the latest. */
+export const periodSummaryPath = (): string => `${API_BASE}/monthly-reports/summary`;
 /** The days opened and never closed, most recent first (listCashDays); the caller adds `page` and `limit`. */
 export const pendingCashDaysPath = (): string => `${API_BASE}/cash-days?pendingClosure=true`;
 
@@ -28,4 +32,10 @@ export async function listAll<T>(client: PortalApiClient, path: string): Promise
     last = result.meta.totalPages;
   }
   return all;
+}
+
+/** True when every named field of a body is an integer: amounts are whole cents and counts whole numbers; a field that is missing is not. */
+export function wholeNumbers(body: object, fields: readonly string[]): boolean {
+  const record = body as Record<string, unknown>;
+  return fields.every((field) => Number.isInteger(record[field]));
 }

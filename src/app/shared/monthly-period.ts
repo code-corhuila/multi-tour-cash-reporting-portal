@@ -14,4 +14,8 @@ export interface MonthlyPeriod {
   readonly registeredCancellations: number;
   /** Cents; zero when the period has none. */
   readonly registeredOperationalCosts: number;
+  /** Only the consolidation of Caja draws these three (spec 003- D-10); the article of Reportes ignores them. */
+  readonly countedMovements?: number;
+  readonly incomeInCash?: number;
+  readonly incomeByTransfer?: number;
 }
