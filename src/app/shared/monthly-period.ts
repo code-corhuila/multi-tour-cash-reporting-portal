@@ -14,4 +14,8 @@ export interface MonthlyPeriod {
   readonly registeredCancellations: number;
   /** Cents; zero when the period has none. */
   readonly registeredOperationalCosts: number;
+  /** The three lines only the consolidation of Caja draws (G-SPLIT, PROPUESTO): individual movements counted and the cash and transfer split of the income, in cents. */
+  readonly countedMovements?: number;
+  readonly incomeInCash?: number;
+  readonly incomeByTransfer?: number;
 }
