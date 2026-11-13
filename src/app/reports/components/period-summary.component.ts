@@ -46,7 +46,7 @@ export class PeriodSummaryComponent {
 
   protected metrics(summary: PeriodSummary): readonly { label: string; value: string; note: string }[] {
     return [
-      { label: this.t.sales, value: formatCop(summary.confirmedSales), note: this.t.salesNote },
+      { label: this.t.sales, value: summary.confirmedSales === null ? this.t.noData : formatCop(summary.confirmedSales), note: this.t.salesNote },
       { label: this.t.income, value: formatCop(summary.periodIncome), note: this.t.incomeNote },
       { label: this.t.costs, value: formatCop(summary.registeredOperationalCosts), note: this.t.costsNote },
       { label: this.t.cancellations, value: String(summary.registeredCancellations), note: this.t.cancellationsNote },
