@@ -27,7 +27,7 @@ type Row = readonly [string, string, string];
 function csvRows(data: ReportData): Row[] {
   const { dashboard: d, summary: s } = data;
   const rows: Row[] = [
-    ['Resumen', t.sales, pesos(s.confirmedSales)], ['Resumen', t.income, pesos(s.periodIncome)],
+    ['Resumen', t.sales, s.confirmedSales === null ? t.noData : pesos(s.confirmedSales)], ['Resumen', t.income, pesos(s.periodIncome)],
     ['Resumen', t.costs, pesos(s.registeredOperationalCosts)], ['Resumen', t.cancellations, String(s.registeredCancellations)],
     ['Dashboard diario', t.created, String(d.createdReservations)], ['Dashboard diario', t.pending, String(d.pendingPaymentReservations)],
     ['Dashboard diario', t.confirmed, String(d.confirmedReservations)], ['Dashboard diario', t.withBalance, String(d.confirmedWithBalance)],
@@ -64,7 +64,7 @@ function pdfBlocks(data: ReportData): PdfBlock[] {
   const blocks: PdfBlock[] = [
     { kind: 'title', text: 'Reporte operativo y económico', subtitle: `Multitour · Período ${periodOf(data)}` },
     { kind: 'heading', text: 'Resumen' },
-    row(t.sales, formatCop(s.confirmedSales)), row(t.income, formatCop(s.periodIncome)),
+    row(t.sales, s.confirmedSales === null ? t.noData : formatCop(s.confirmedSales)), row(t.income, formatCop(s.periodIncome)),
     row(t.costs, formatCop(s.registeredOperationalCosts)), row(t.cancellations, String(s.registeredCancellations)),
     { kind: 'heading', text: 'Dashboard diario (hoy)' },
     row(t.created, String(d.createdReservations)), row(t.pending, String(d.pendingPaymentReservations)), row(t.confirmed, String(d.confirmedReservations)),

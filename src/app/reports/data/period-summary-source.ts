@@ -2,8 +2,8 @@
 export interface PeriodSummary {
   /** The month the four values are of, `2026-09`. */
   readonly reportedPeriod: string;
-  /** Not in 06-data yet (gap G-SALES, PROPUESTO): the commercial value confirmed in the period. */
-  readonly confirmedSales: number;
+  /** Not in 06-data yet (gap G-SALES, PROPUESTO): the commercial value confirmed in the period; null while it has no source, and then it is never drawn as zero. */
+  readonly confirmedSales: number | null;
   readonly periodIncome: number;
   readonly registeredOperationalCosts: number;
   readonly registeredCancellations: number;
