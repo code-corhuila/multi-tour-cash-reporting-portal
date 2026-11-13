@@ -40,8 +40,8 @@ export class MonthlyReportApiSource extends MonthlyReportSource {
 
 /**
  * PeriodSummarySource over the container client (spec A1.9): one GET with no body, no query and no period, so the service answers its latest period.
- * `confirmedSalesCents` is null while the commercial value has no source (G-SALES): an unknown figure is never drawn as zero, so it is rejected and the
- * row shows the error, not a false $0.
+ * `confirmedSalesCents` is null while the commercial value has no source (G-SALES): it is kept as null, never converted to zero, so the screen draws "Sin dato"
+ * in that figure only and the other three are read as always.
  */
 export class PeriodSummaryApiSource extends PeriodSummarySource {
   constructor(private readonly client: PortalApiClient) { super(); }
@@ -50,7 +50,7 @@ export class PeriodSummaryApiSource extends PeriodSummarySource {
     const body = await this.client.request<Wire | null>(monthlyReportSummaryPath());
     if (typeof body !== 'object' || body === null || !isPeriod(body['reportedPeriod'])) { throw new Error('monthly-report-summary: no reportedPeriod'); }
     const [sales, income, costs, cancellations] = ['confirmedSalesCents', 'periodIncomeCents', 'operationalCostsCents', 'cancellations'].map((field) => body[field]);
-    if (![sales, income, costs, cancellations].every(isCount)) { throw new Error('monthly-report-summary: a value is missing, unknown or not a whole number'); }
-    return { reportedPeriod: body['reportedPeriod'], confirmedSales: sales as number, periodIncome: income as number, registeredOperationalCosts: costs as number, registeredCancellations: cancellations as number };
+    if (!(sales === null || isCount(sales)) || ![income, costs, cancellations].every(isCount)) { throw new Error('monthly-report-summary: a value is missing or not a whole number (only confirmedSalesCents may be null)'); }
+    return { reportedPeriod: body['reportedPeriod'], confirmedSales: sales as number | null, periodIncome: income as number, registeredOperationalCosts: costs as number, registeredCancellations: cancellations as number };
   }
 }

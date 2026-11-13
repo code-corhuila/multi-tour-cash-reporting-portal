@@ -133,8 +133,15 @@ describe('PeriodSummaryApiSource reads the summary through the container client 
     await expect(new PeriodSummaryApiSource(client).current()).rejects.toBeTruthy();
   });
 
-  it('never draws an unknown sales figure as zero: a null confirmedSalesCents (G-SALES) is rejected, not converted', async () => {
+  it('keeps an unknown sales figure as null, never as zero: a null confirmedSalesCents (G-SALES) maps to confirmedSales null and the rest is read as always', async () => {
     const { client } = fakeCashClient({ [SUMMARY]: { ok: { ...WIRE_SUMMARY, confirmedSalesCents: null } } });
+    expect(await new PeriodSummaryApiSource(client).current()).toEqual({
+      reportedPeriod: '2026-09', confirmedSales: null, periodIncome: 129000000, registeredOperationalCosts: 48000000, registeredCancellations: 2,
+    });
+  });
+
+  it.each([-1, 1.5, '3'])('still rejects a confirmedSalesCents that is %j (only null is unknown)', async (bad) => {
+    const { client } = fakeCashClient({ [SUMMARY]: { ok: { ...WIRE_SUMMARY, confirmedSalesCents: bad } } });
     await expect(new PeriodSummaryApiSource(client).current()).rejects.toBeTruthy();
   });
 
