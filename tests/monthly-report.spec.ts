@@ -252,6 +252,14 @@ describe('summaryRowShowsTheFourValuesOfThePeriod', () => {
     expect(metrics(host).map((m) => m[1])).toEqual(['$1', '$9', '$7', '5']);
   });
 
+  it('draws "Sin dato" only in the sales figure when the source has none, never $0, and the other three figures as usual', async () => {
+    const { host } = await renderPage(new FixedMonthly([SEP]), new FixedSummary({ ...SUMMARY, confirmedSales: null }));
+    expect(metrics(host)).toEqual([
+      ['Ventas confirmadas', 'Sin dato', 'Valor comercial confirmado'], ['Ingresos del período', '$1.290.000', 'Dinero recibido o validado en caja'],
+      ['Costos operacionales', '$0', 'Servicios ejecutados'], ['Cancelaciones', '0', 'Con causal registrada']]);
+    expect(host.querySelector('[role="alert"]')).toBeNull();
+  });
+
   it('is drawn above the dashboard, and holds no Exportar, CSV, PDF or note about exporting', async () => {
     const { host, text } = await renderPage(new FixedMonthly([SEP]), new FixedSummary(SUMMARY));
     expect(host.querySelector('.csh-monthly-summary')).not.toBeNull();

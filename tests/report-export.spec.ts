@@ -37,6 +37,15 @@ describe('exportedCsvHoldsTheSameFiguresAsTheScreen', () => {
     expect(rows.length).toBe(1 + 4 + 6 + 14);
   });
 
+  it('writes "Sin dato" for an unknown sales figure, never 0, and keeps the other summary values', () => {
+    const rows = buildReportCsv({ ...DATA, summary: { ...SUMMARY, confirmedSales: null } }).split('\r\n');
+    expect(rows.slice(1, 5)).toEqual(['"Resumen","Ventas confirmadas","Sin dato"', '"Resumen","Ingresos del período","3380000"', '"Resumen","Costos operacionales","480000"', '"Resumen","Cancelaciones","2"']);
+  });
+
+  it('writes "Sin dato" in the PDF for an unknown sales figure', () => {
+    expect(text(buildReportPdf({ ...DATA, summary: { ...SUMMARY, confirmedSales: null } }))).toContain('Sin dato');
+  });
+
   it('writes only the summary and the indicators when the month has no periods', () => {
     expect(buildReportCsv({ ...DATA, periods: [] }).split('\r\n').length).toBe(1 + 4 + 6);
   });
