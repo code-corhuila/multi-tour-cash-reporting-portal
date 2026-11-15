@@ -1,22 +1,36 @@
 import { NgComponentOutlet } from '@angular/common';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { formatCop } from '../../shared/format';
+import { PortalCapabilities } from '../../shared/portal-capabilities';
 import { PageLoad, PageStateComponent } from '../../shared/page-state';
 import { CASH_CONSULTATION_LINKS } from '../../shared/portal-slots';
 import { CASH_COPY } from '../cash-copy';
+import { CashBaseAdjustComponent } from '../components/cash-base-adjust.component';
 import { CashRegisterComponent } from '../components/cash-register.component';
+import { CashBaseWriter } from '../data/cash-base-writer';
+import { CashOpeningComponent } from '../components/cash-opening.component';
 import { CashDay, CashDaySource } from '../data/cash-day-source';
+import { CashOpeningWriter } from '../data/cash-opening-writer';
+import { CashReopeningComponent } from '../components/cash-reopening.component';
+import { CashReopeningWriter } from '../data/cash-reopening-writer';
+import { CashPendingClosureComponent } from '../components/cash-pending-closure.component';
+import { CashPendingClosingWriter } from '../data/cash-pending-closing-writer';
 
 /** Screen 14, admin-caja.html, read side: the day as the service resolved it. Nothing is added up here (RN-CJ1, RN-CJ10). */
 @Component({
   selector: 'csh-cash-day',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgComponentOutlet, PageStateComponent, CashRegisterComponent],
+  imports: [NgComponentOutlet, PageStateComponent, CashBaseAdjustComponent, CashOpeningComponent, CashPendingClosureComponent, CashReopeningComponent, CashRegisterComponent],
   template: `
     <section class="csh-cash" aria-labelledby="csh-cash-title">
       <header class="csh-cash-header">
-        <p class="csh-cash-eyebrow">{{ t.eyebrow }}</p>
-        <h1 id="csh-cash-title" class="csh-cash-title">{{ t.title }}</h1>
+        <div class="csh-cash-header-main">
+          <p class="csh-cash-eyebrow">{{ t.eyebrow }}</p>
+          <h1 id="csh-cash-title" class="csh-cash-title">{{ t.title }}</h1>
+        </div>
+        @if (adjustable) {
+          <button type="button" class="csh-cash-primary" [disabled]="!isOperative()" [attr.aria-expanded]="adjusting()" (click)="adjusting.set(true)">{{ t.base.action }}</button>
+        }
       </header>
       <p class="csh-cash-access-note">{{ t.accessNote }}</p>
       <csh-page-state [state]="load.state()" emptyText="">
@@ -24,6 +38,13 @@ import { CashDay, CashDaySource } from '../data/cash-day-source';
         @if (s.kind === 'data') {
           @let day = s.items[0];
           @let hero = heroOf(day);
+          @if (pendable && day.pendingClosure) { <csh-cash-pending-closure [day]="day" (answered)="closedPending($event)" /> }
+          @if (pendingNotice(); as message) { <p id="csh-cash-pending-notice" class="csh-cash-feedback csh-cash-feedback-ok" role="status">{{ message }}</p> }
+          @if (openable && (day.status === 'NO_OPENING' || day.status === 'OPEN_AUTOMATIC')) { <csh-cash-opening [day]="day" (answered)="opened($event)" /> }
+          @if (openingNotice(); as message) { <p id="csh-cash-opening-notice" class="csh-cash-feedback csh-cash-feedback-ok" role="status">{{ message }}</p> }
+          @if (reopenable && day.status === 'CLOSED') { <csh-cash-reopening (answered)="reopened($event)" /> }
+          @if (reopeningNotice(); as message) { <p id="csh-cash-reopening-notice" class="csh-cash-feedback csh-cash-feedback-ok" role="status">{{ message }}</p> }
+          @if (adjustable) { <csh-cash-base-adjust [day]="day" [(open)]="adjusting" (answered)="refresh()" /> }
           <section class="csh-cash-hero">
             <div>
               <p class="csh-cash-eyebrow">{{ t.status[day.status] }}</p>
@@ -58,11 +79,49 @@ export class CashDayPageComponent {
   protected readonly t = CASH_COPY;
   protected readonly links = inject(CASH_CONSULTATION_LINKS);
   private readonly source = inject(CashDaySource);
+  /** RN-CJ6: only who changes the base sees the action, in a build that has the writer; the service refuses regardless. */
+  protected readonly adjustable = inject(PortalCapabilities).canChangeBase() && inject(CashBaseWriter, { optional: true }) !== null;
+  protected readonly adjusting = signal(false);
+  /** AC-CJ.13: who operates the cash sees the opening, in a build that has the writer; the service refuses regardless. */
+  protected readonly openable = inject(PortalCapabilities).canOperateCash() && inject(CashOpeningWriter, { optional: true }) !== null;
+  protected readonly openingNotice = signal('');
+
+  /** AC-CJ.15: who operates the cash sees the reopening of a closed day, in a build that has the writer; the service refuses regardless. */
+  protected readonly reopenable = inject(PortalCapabilities).canOperateCash() && inject(CashReopeningWriter, { optional: true }) !== null;
+  protected readonly reopeningNotice = signal('');
+
+  /** AC-CJ.16: who operates the cash sees the formal closing of a pending cash, in a build that has the writer; the service refuses regardless. */
+  protected readonly pendable = inject(PortalCapabilities).canOperateCash() && inject(CashPendingClosingWriter, { optional: true }) !== null;
+  protected readonly pendingNotice = signal('');
+
+  protected closedPending(message: string): void {
+    this.pendingNotice.set(message);
+    this.refresh();
+  }
+
+  protected opened(message: string): void {
+    this.reopeningNotice.set('');
+    this.openingNotice.set(message);
+    this.refresh();
+  }
+
+  protected reopened(message: string): void {
+    this.openingNotice.set('');
+    this.reopeningNotice.set(message);
+    this.refresh();
+  }
+
   protected readonly load = new PageLoad<CashDay>();
 
   constructor() {
     inject(DestroyRef).onDestroy(() => this.load.stop());
     this.reload();
+  }
+
+  /** AC-CJ.4: the base is changed only on an open day with operative opening; a closed day or a cash with no base disables the action. */
+  protected isOperative(): boolean {
+    const state = this.load.state();
+    return state.kind === 'data' && state.items[0].status === 'OPEN_OPERATIVE';
   }
 
   /** The newest request wins (PageLoad); the source takes no tenant and no day. */

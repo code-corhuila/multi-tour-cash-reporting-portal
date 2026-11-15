@@ -2,10 +2,10 @@ import { Provider } from '@angular/core';
 import { DailyDashboard, DailyDashboardSource } from '../reports/data/daily-dashboard-source';
 import { demoFixture } from './demo-fixtures';
 
-/** The demo day of 001- (03 sep 2026): the static numbers of screen 9, with 3 invented for Confirmadas con saldo (spec section 6). */
+/** The demo day of 001- (01 sep 2026, the mockup clock): the figures the mockup draws on admin-reportes.html. */
 const SEED: DailyDashboard = {
-  reportDate: '2026-09-03', createdReservations: 12, pendingPaymentReservations: 6, confirmedReservations: 18,
-  confirmedWithBalance: 3, cancelledReservations: 2, upcomingServices: 4,
+  reportDate: '2026-09-01', createdReservations: 0, pendingPaymentReservations: 3, confirmedReservations: 3,
+  confirmedWithBalance: 1, cancelledReservations: 0, upcomingServices: 4,
 };
 const EMPTY_DAY: DailyDashboard = { ...SEED, createdReservations: 0, pendingPaymentReservations: 0, confirmedReservations: 0, confirmedWithBalance: 0, cancelledReservations: 0, upcomingServices: 0 };
 

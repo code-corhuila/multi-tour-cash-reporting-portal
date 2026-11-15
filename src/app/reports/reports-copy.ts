@@ -20,6 +20,7 @@ export const REPORTS_COPY = Object.freeze({
   summaryLabel: 'Resumen del período',
   sales: 'Ventas confirmadas',
   salesNote: 'Valor comercial confirmado',
+  noData: 'Sin dato',
   income: 'Ingresos del período',
   incomeNote: 'Dinero recibido o validado en caja',
   costs: 'Costos operacionales',

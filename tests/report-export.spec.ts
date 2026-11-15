@@ -1,7 +1,8 @@
 import { Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { MonthlyPeriod, MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../src/app/shared/monthly-period';
 import { DailyDashboard, DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
 import { PeriodSummary, PeriodSummarySource } from '../src/app/reports/data/period-summary-source';
 import { BrowserReportExporter, ReportExporter } from '../src/app/reports/data/report-exporter';
@@ -34,6 +35,15 @@ describe('exportedCsvHoldsTheSameFiguresAsTheScreen', () => {
     expect(rows).toContain('"Mensual 2026-09","Devoluciones efectivamente realizadas","0"');
     expect(rows).toContain('"Mensual 2026-08","Ingresos","800000"');
     expect(rows.length).toBe(1 + 4 + 6 + 14);
+  });
+
+  it('writes "Sin dato" for an unknown sales figure, never 0, and keeps the other summary values', () => {
+    const rows = buildReportCsv({ ...DATA, summary: { ...SUMMARY, confirmedSales: null } }).split('\r\n');
+    expect(rows.slice(1, 5)).toEqual(['"Resumen","Ventas confirmadas","Sin dato"', '"Resumen","Ingresos del período","3380000"', '"Resumen","Costos operacionales","480000"', '"Resumen","Cancelaciones","2"']);
+  });
+
+  it('writes "Sin dato" in the PDF for an unknown sales figure', () => {
+    expect(text(buildReportPdf({ ...DATA, summary: { ...SUMMARY, confirmedSales: null } }))).toContain('Sin dato');
   });
 
   it('writes only the summary and the indicators when the month has no periods', () => {
@@ -72,7 +82,9 @@ describe('exportedPdfIsAValidDocumentWithTheSameLines', () => {
     expect(pdf).toContain('/BaseFont /Helvetica-Bold');
   });
   it('carries the lines of the report with accents as WinAnsi bytes', () => {
-    ['(Reporte operativo y econ\xF3mico - Multitour)', '(Ventas confirmadas: $4.150.000)', '(Pr\xF3ximas a ejecutar: 4)', '(Total consolidado de caja del per\xEDodo: $2.580.000)', '(Per\xEDodo reportado: 2026-08)']
+    // Each line of the mockup is drawn as a label on the left and its value on the right (report-pdf-layout.spec.ts); the words are the same.
+    ['(Reporte operativo y econ\xF3mico) Tj', '(Multitour \xB7 Per\xEDodo 2026-09) Tj', '(Ventas confirmadas) Tj', '($4.150.000) Tj', '(Pr\xF3ximas a ejecutar) Tj', '(4) Tj',
+      '(Total consolidado de caja del per\xEDodo) Tj', '($2.580.000) Tj', '(Per\xEDodo reportado: 2026-08) Tj']
       .forEach((line) => expect(pdf).toContain(line));
   });
   it('escapes parentheses and backslashes and adds pages when the lines do not fit', () => {

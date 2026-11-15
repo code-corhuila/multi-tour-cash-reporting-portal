@@ -13,8 +13,8 @@ import { PortalActor } from '../src/app/shared/portal-capabilities';
 // the form of movements (AC-CJ.9, .12, .14), "Cerrar caja" (AC-CJ.3, .4) and the demo store that stands for the service.
 const NOTE = 'Registra los movimientos de la jornada. Los pagos validados y las devoluciones ejecutadas se agregan automáticamente; el efectivo exige la apertura operativa y una transferencia crea la caja del día si todavía no existe.';
 const DAY: CashDay = {
-  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Fernanda Robayo (Administrador del tenant)',
-  movements: [{ cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Fernanda Robayo' }],
+  businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: 30000000, openedBy: 'Administrador Demo (Administrador del tenant)',
+  movements: [{ cashMovementId: 'm2', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -25000000, paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-09-01T11:45:00', registeredBy: 'Administrador Demo' }],
   metrics: { income: 0, operationalPayments: 0, expenses: 25000000, refunds: 0, total: 5000000, expectedCash: 5000000, netTransfers: 0 },
 };
 const flat = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
@@ -93,7 +93,7 @@ describe('theMovementsPanelDrawsTheFormOfTheMockup', () => {
   it('keeps the table of movements with its six columns under the form', async () => {
     const { host } = await render(['TENANT_ADMINISTRATOR']);
     expect(Array.from(host.querySelectorAll('thead th')).map((th) => flat(th.textContent))).toEqual(['Hora', 'Tipo', 'Concepto', 'Medio', 'Valor', 'Responsable']);
-    expect(Array.from(host.querySelectorAll('tbody tr td')).map((td) => flat(td.textContent))).toEqual(['11:45', 'Gasto', 'Compra operativa', 'Efectivo', '-$250.000', 'Fernanda Robayo']);
+    expect(Array.from(host.querySelectorAll('tbody tr td')).map((td) => flat(td.textContent))).toEqual(['11:45', 'Gasto', 'Compra operativa', 'Efectivo', '-$250.000', 'Administrador Demo']);
   });
 });
 
@@ -289,7 +289,7 @@ describe('theDemoStoreAppliesTheRulesOfTheService', () => {
     expect(await movements.register(expense(1000000), 'key-aaaaaaaa')).toEqual({ kind: 'registered', placement: 'IN_DAY' });
     const today = await day.today();
     expect(today.movements.at(-1)).toMatchObject({ movementType: 'EXPENSE', concept: 'Taxi', amount: -1000000, paymentMedium: 'CASH', afterClosing: false, registeredBy: 'Administrador del tenant' });
-    expect(today.metrics).toMatchObject({ expenses: 26000000, expectedCash: 4000000, total: 118000000 });
+    expect(today.metrics).toMatchObject({ expenses: 26000000, expectedCash: 4000000, total: 133000000 });
   });
 
   it('records an income as a positive row and counts it once for the same key', async () => {
@@ -307,7 +307,7 @@ describe('theDemoStoreAppliesTheRulesOfTheService', () => {
     await movements.register(expense(1000000, 'TRANSFER'), 'key-cccccccc');
     const today = await day.today();
     expect(today.metrics.expectedCash).toBe(5000000);
-    expect(today.metrics.netTransfers).toBe(113000000);
+    expect(today.metrics.netTransfers).toBe(128000000);
   });
 
   it('refuses cash on a day without opening and creates the cash of the day with a transfer', async () => {

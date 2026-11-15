@@ -3,7 +3,9 @@ import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it } from 'vitest';
 import { CashDay, CashDaySource } from '../src/app/cash/data/cash-day-source';
 import { CashClosure, CashClosuresSource } from '../src/app/cash/data/cash-closures-source';
-import { MonthlyPeriod, MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { CashCorrectionWriter } from '../src/app/cash/data/cash-correction-writer';
+import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../src/app/shared/monthly-period';
 import { DemoCashClosuresSource, DemoCashStore } from '../src/app/demo/cash-demo';
 import { PORTAL_AREAS } from '../src/app/shared/portal-areas';
 import { PortalActor } from '../src/app/shared/portal-capabilities';
@@ -16,7 +18,7 @@ import { sourceProviders as demoSources } from '../src/app/sources.demo';
 // read-only sub-screens, admin-historial-caja.html and admin-consolidacion-mensual.html. Amounts are cents. Demo day: 01 sep 2026.
 const LEGACY_CODES = /OPEN_OPERATIVE|OPEN_AUTOMATIC|NO_OPENING|CLOSED|AUTOMATIC|MANUAL|\bCASH\b|TRANSFER|REFUND|INCOME|EXPENSE|OPERATIONAL_|AFTER_/;
 const flat = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
-const ADMIN = 'Fernanda Robayo (Administrador del tenant)';
+const ADMIN = 'Administrador Demo (Administrador del tenant)';
 const peso = (n: number) => n * 100;
 const TODAY: CashDay = {
   businessDate: '2026-09-01', status: 'OPEN_OPERATIVE', origin: 'OPERATIONAL_OPENING', openingBase: peso(300000), openedBy: ADMIN, movements: [],
@@ -69,6 +71,8 @@ async function shellWith(roles: string[], providers: Provider[]) {
 const fakes = (closures: () => Promise<readonly CashClosure[]>, periods: () => Promise<readonly MonthlyPeriod[]>): Provider[] => [
   { provide: CashDaySource, useValue: new Day() },
   { provide: CashClosuresSource, useValue: new Closures(closures) },
+  // The Administrador sees the correction form under a manual closure (T-07); these tests only read, so nothing is ever registered.
+  { provide: CashCorrectionWriter, useValue: { register: () => Promise.resolve({ kind: 'registered' }) } },
   { provide: MonthlyReportSource, useValue: new Monthly(periods) },
   { provide: CASH_CONSULTATION_LINKS, useValue: CashHistoryLinkComponent, multi: true },
   { provide: CASH_CONSULTATION_LINKS, useValue: CashMonthlyLinkComponent, multi: true },
@@ -120,8 +124,15 @@ describe('cashAreasOfTheConsultation', () => {
 });
 
 describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
-  it('shows 31 ago and 30 ago 2026 of the demo, newest first, with the header and the note of the mockup', async () => {
-    const { host, click, title, text, active } = await shellWith(['TENANT_ADMINISTRATOR'], demo());
+  it('the demo history starts empty as the mockup does, with its empty text', async () => {
+    const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], demo());
+    await click('Historial de caja');
+    expect(text()).toContain('Aún no se han registrado cierres de caja.');
+    expect(host.querySelectorAll('section.csh-history-closure').length).toBe(0);
+  });
+
+  it('shows 31 ago and 30 ago 2026 of the source, newest first, with the header and the note of the mockup', async () => {
+    const { host, click, title, text, active } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([CLOSURE, AUTOMATIC]));
     await click('Historial de caja');
     expect(title()).toBe('Historial de caja');
     expect(flat(host.querySelector('main .csh-cash-eyebrow')?.textContent)).toBe('Control diario');
@@ -136,7 +147,7 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
   });
 
   it('showsTheOriginOfTheCashAndTheExpectedCash: an automatic closure has no expected cash and says who closed it', async () => {
-    const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], demo());
+    const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([CLOSURE, AUTOMATIC]));
     await click('Historial de caja');
     const auto = lines(host, 'Cierre 30 ago 2026');
     expect(auto['Total']).toBe('$200.000');
@@ -154,8 +165,8 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
       reopenings: [{ reopenedAt: '2026-08-31T19:10:00', reopenedBy: ADMIN, reason: 'Falta registrar un gasto' }],
       corrections: [{ appliedAt: '2026-09-01T08:30:00', appliedBy: ADMIN, justification: 'Ajuste por error de digitación' }],
       movements: [
-        { cashMovementId: 'a', movementType: 'INCOME', concept: 'Pago reserva #RES-1899', amount: peso(200000), paymentMedium: 'TRANSFER', afterClosing: true, registeredAt: '2026-08-31T20:00:00', registeredBy: 'Fernanda Robayo' },
-        { cashMovementId: 'b', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -peso(250000), paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-08-31T11:45:00', registeredBy: 'Fernanda Robayo' },
+        { cashMovementId: 'a', movementType: 'INCOME', concept: 'Pago reserva #RES-1899', amount: peso(200000), paymentMedium: 'TRANSFER', afterClosing: true, registeredAt: '2026-08-31T20:00:00', registeredBy: 'Administrador Demo' },
+        { cashMovementId: 'b', movementType: 'EXPENSE', concept: 'Compra operativa', amount: -peso(250000), paymentMedium: 'CASH', afterClosing: false, registeredAt: '2026-08-31T11:45:00', registeredBy: 'Administrador Demo' },
       ],
     };
     const { host, click, text } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([rich]));
@@ -171,25 +182,36 @@ describe('historyListsTheClosuresNewestFirstWithTheirValues', () => {
     expect(text()).not.toMatch(LEGACY_CODES);
   });
 
-  it('aClosureStoredAfterTheDayClosedFromTheFormAppearsFirstAndOnce', async () => {
+  it('theMockupHasNoClosuresUntilTheDayIsClosedFromTheFormAndThenItAppearsOnce', async () => {
     const store = new DemoCashStore({ now: () => Date.parse('2026-09-01T18:05:00'), actor: () => 'Administrador del tenant' });
     const source = new DemoCashClosuresSource(store);
-    expect((await source.list()).map((c) => c.businessDate)).toEqual(['2026-08-31', '2026-08-30']);
+    expect((await source.list()).map((c) => c.businessDate)).toEqual([]);
     store.close('k-1');
     store.close('k-2');
     const list = await source.list();
-    expect(list.map((c) => c.businessDate)).toEqual(['2026-09-01', '2026-08-31', '2026-08-30']);
-    expect(list[0]).toMatchObject({ closingMode: 'MANUAL', expectedCash: peso(50000), total: peso(1190000), closedBy: 'Administrador del tenant' });
+    expect(list.map((c) => c.businessDate)).toEqual(['2026-09-01']);
+    expect(list[0]).toMatchObject({ closingMode: 'MANUAL', expectedCash: peso(50000), total: peso(1340000), closedBy: 'Administrador del tenant' });
   });
 });
 
 describe('historyIsReadOnly', () => {
-  it.each(['TENANT_ADMINISTRATOR', 'OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('offers %s only to read: no form, no field and a single "Volver a caja"', async (role) => {
+  it.each(['OPERATIONAL_COLLABORATOR', 'MANAGER', 'ACCOUNTANT', 'ANALYST'])('offers %s only to read: no form, no field and a single "Volver a caja"', async (role) => {
     const { host, click, title } = await shellWith([role], withClosures([CLOSURE, AUTOMATIC]));
     await click('Historial de caja');
     expect(title()).toBe('Historial de caja');
     expect(host.querySelectorAll('main form, main input, main textarea, main select').length).toBe(0);
     expect(Array.from(host.querySelectorAll('main button')).map((b) => flat(b.textContent))).toEqual(['Volver a caja']);
+  });
+
+  // T-07: the Administrador registers the correction (mockup `app.js` 7232): one form under the manual closure, none under the automatic one.
+  it('offers TENANT_ADMINISTRATOR the correction form of the manual closure and nothing else to write', async () => {
+    const { host, click, title } = await shellWith(['TENANT_ADMINISTRATOR'], withClosures([CLOSURE, AUTOMATIC]));
+    await click('Historial de caja');
+    expect(title()).toBe('Historial de caja');
+    expect(host.querySelectorAll('main form')).toHaveLength(1);
+    expect(host.querySelectorAll('main textarea')).toHaveLength(1);
+    expect(host.querySelectorAll('main input, main select')).toHaveLength(0);
+    expect(Array.from(host.querySelectorAll('main button')).map((b) => flat(b.textContent))).toEqual(['Volver a caja', 'Registrar corrección']);
   });
 
   it.each([['a Cliente final', ['FINAL_CUSTOMER']], ['an unknown role', ['SUPPLIER']], ['no role', []]])('offers nothing to %s', async (_who, roles) => {

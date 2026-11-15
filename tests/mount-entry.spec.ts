@@ -1,4 +1,6 @@
+import { inject, provideAppInitializer } from '@angular/core';
 import { afterEach, describe, expect, it, vi } from 'vitest';
+import { PortalActor } from '../src/app/shared/portal-capabilities';
 import * as entry from '../src/mount-entry';
 import type { MountProps } from '../src/app/shell-contract';
 
@@ -69,5 +71,21 @@ describe('mountRendersAndUnmounts', () => {
     expect(fetchSpy).not.toHaveBeenCalled();
     cleanup();
     fetchSpy.mockRestore();
+  });
+
+  it.each([
+    ["a Colaborador whose session carries MANAGE_CASH", ["OPERATIONAL_COLLABORATOR"], ["MANAGE_CASH"], true],
+    ["a Colaborador whose session carries other permissions", ["OPERATIONAL_COLLABORATOR"], ["VALIDATE_PAYMENT_PROOFS"], false],
+    ["a container that reports no permissions", ["OPERATIONAL_COLLABORATOR"], undefined, false],
+  ])("gives the actor Gestionar caja from the session permissions: %s", async (_who, roles, permissions, expected) => {
+    let actor: PortalActor | undefined;
+    const cleanup = entry.mountWith(
+      newHost(),
+      { ...props, session: { ...props.session, roles, permissions } as never },
+      (client) => [provideAppInitializer(() => { actor = inject(PortalActor); }) as never, { provide: "unused", useValue: client }],
+    );
+    await vi.waitFor(() => expect(actor).toBeDefined());
+    expect(actor!.mayManageCash).toBe(expected);
+    cleanup();
   });
 });

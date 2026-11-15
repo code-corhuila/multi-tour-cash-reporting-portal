@@ -23,13 +23,31 @@ demo sources). Copy `dist/portal.js` and `dist/portal.css` to `portals/cash-repo
 
 ## Where its data is
 
-Nowhere: it stores nothing and reads no variable. The API and database are deferred (micro plan
-D-CSH-01): the production module registers no source and offers no area; demo data lives only in the demo build.
+Nowhere: it stores nothing and reads no variable. The production module registers the HTTP adapters of the read ports of the day and the closures (`src/app/http/`, over `props.apiClient`, route `/api/v1/cash-reporting`) and offers only "Caja" and its history; the writers of the opening, the base and the movements are registered too (branch 2), and so are the closing, the pending closing and the reopening (branch 3: the movement form and the closing are drawn), and so is the correction note of a closure (TD-12: the Administrador sees its form in the history), while the reports and the monthly consolidation have no adapter yet and are not offered (micro plan
+D-CSH-02). Demo data lives only in the demo build.
 
 ## How to test
 
 `npm test` (Vitest). `ci.yml` runs on pull requests to `develop` and `qa`: tests, both module builds, a check
-that the production module carries no client, storage or address, and the module size.
+that the production module carries no client, storage or host address and no route but `/api/v1/cash-reporting`, and the module size.
+
+## Performance budgets
+
+Pillar 13 (measured 2026-10-15 on `origin/develop`, no new dependency). `angular.json` fails the build when a bundle grows past its limit:
+
+| Artifact | Measured (raw) | Warning | Error |
+|---|---|---|---|
+| Application build, initial (polyfills + main) | 40,55 kB (13,93 kB transferred) | 70 kB | 100 kB |
+| Application build, lazy `bootstrap` chunk | 76,31 kB (15,16 kB transferred) | none | none |
+| Application build, whole `dist/cash-reporting-portal` | 1.482.369 B | none | none |
+| Mounted module `main.js`, production (`build:module`) | 213,25 kB (58,25 kB transferred; with the read adapters and the opening, base, movement, closing, pending closing and reopening writers, 2026-11-04) | 230 kB | 280 kB |
+| Mounted module `main.js`, demo (`build:module:demo`) | 220,71 kB (59,55 kB transferred; 2026-11-04) | 230 kB | 280 kB |
+
+Any change that moves one of these figures records the new measure here.
+
+## CSP impact
+
+Pillar 9: the portal loads no image or file of its own. The only resource that needs the container policy is the export of screen 16 (CSV and PDF), which is saved through a temporary link to a Blob: the container must allow `blob:` for downloads under `default-src 'self'`. Nothing uses `data:` (checked with a search over `src/`), and no network is involved (RN-CJ9).
 
 ## What is missing
 

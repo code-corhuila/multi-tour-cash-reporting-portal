@@ -17,11 +17,15 @@ export interface MountProps {
   identifier?: string;
   /** The container client: it carries the session, the credential and the trace of every request. */
   apiClient: { request<T>(path: string, init?: unknown): Promise<T> };
-  session: { readonly roles: string[]; open(answer: unknown): void; close(): void };
+  session: { readonly roles: string[]; readonly permissions?: readonly string[]; open(answer: unknown): void; close(): void };
   /** PROPUESTO for ADR-007 (as the commercial portal): parameters the container keeps across a remount. */
   initialParams?: Readonly<Record<string, string>>;
   /** Asks the container to open an area of another portal (the container also takes a path text, which this portal never sends); absent, the links to it are not drawn. */
   navigate?: (target: PortalTarget) => void;
+  /** Who draws the navigation chrome: 'container' means the container draws the sidebar and the portal only shows its content; absent, the portal draws its own. */
+  chrome?: 'container';
+  /** Set only with `chrome: 'container'` (multi-tour-front `core/client/types.ts`): the portal calls it with the sidebar entry it shows as current, so the container marks it. */
+  onAreaChange?: (area: string) => void;
 }
 
 export type PortalApiClient = MountProps['apiClient'];

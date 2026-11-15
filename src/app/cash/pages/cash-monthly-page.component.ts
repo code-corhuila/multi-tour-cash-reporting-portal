@@ -3,7 +3,8 @@ import { MonthlyPeriodComponent } from '../../shared/monthly-period.component';
 import { PageLoad, PageStateComponent } from '../../shared/page-state';
 import { PortalNavigation } from '../../shared/portal-navigation';
 import { CASH_CONSULTATION_COPY } from '../cash-consultation-copy';
-import { MonthlyPeriod, MonthlyReportSource } from '../data/monthly-report-source';
+import { MonthlyPeriod } from '../../shared/monthly-period';
+import { MonthlyReportSource } from '../data/monthly-report-source';
 
 /** Sub-screen of 14, admin-consolidacion-mensual.html: the periods as the service consolidated them; read only, nothing is added up here (RN-RM1). */
 @Component({
@@ -23,7 +24,7 @@ import { MonthlyPeriod, MonthlyReportSource } from '../data/monthly-report-sourc
       <csh-page-state [state]="load.state()" [emptyText]="t.empty">
         @let s = load.state();
         @if (s.kind === 'data') {
-          @for (period of s.items; track period.reportedPeriod) { <section class="csh-cash-panel csh-history-period"><csh-monthly-period [period]="period" /></section> }
+          @for (period of s.items; track period.reportedPeriod) { <section class="csh-cash-panel csh-history-period"><csh-monthly-period [period]="period" [detail]="true" /></section> }
         }
       </csh-page-state>
     </section>

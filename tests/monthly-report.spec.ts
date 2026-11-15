@@ -2,7 +2,9 @@ import { readFileSync } from 'node:fs';
 import { Component, Provider } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { afterEach, describe, expect, it, vi } from 'vitest';
-import { MonthlyPeriod, MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { MonthlyReportSource } from '../src/app/cash/data/monthly-report-source';
+import { MonthlyPeriod } from '../src/app/shared/monthly-period';
+import { DemoCashStore } from '../src/app/demo/cash-demo';
 import { CashMovement, DemoMonthlyReportSource, DemoPeriodSummarySource, consolidate, monthlyReportDemoProviders } from '../src/app/demo/monthly-report-demo';
 import { DailyDashboard, DailyDashboardSource } from '../src/app/reports/data/daily-dashboard-source';
 import { PeriodSummary, PeriodSummarySource } from '../src/app/reports/data/period-summary-source';
@@ -18,19 +20,19 @@ import { sourceProviders as demoSources } from '../src/app/sources.demo';
 import { listSourceFiles, withoutComments } from './source-files';
 
 // HU-CSH-003 (spec 003-, tasks T-02 and T-03): the summary row and the article "Reporte mensual" of screen 16, admin-reportes.html.
-// Amounts are cents (formatCop). Demo: Septiembre 2026 income 3.380.000, payments 300.000, expenses 500.000, refunds 0, total 2.580.000.
+// Amounts are cents (formatCop). Demo (the mockup figures, read from the cash store): Septiembre 2026 income 1.290.000, payments 0, expenses 250.000, refunds 0, total 1.040.000.
 const peso = (n: number) => n * 100;
 const SEP: MonthlyPeriod = {
-  reportedPeriod: '2026-09', periodIncome: peso(3380000), operationalPayments: peso(300000), operationalExpenses: peso(500000),
-  executedRefunds: 0, consolidatedCashTotal: peso(2580000), registeredCancellations: 2, registeredOperationalCosts: peso(480000),
+  reportedPeriod: '2026-09', periodIncome: peso(1290000), operationalPayments: 0, operationalExpenses: peso(250000),
+  executedRefunds: 0, consolidatedCashTotal: peso(1040000), registeredCancellations: 0, registeredOperationalCosts: 0,
 };
 const AUG: MonthlyPeriod = {
-  reportedPeriod: '2026-08', periodIncome: peso(800000), operationalPayments: 0, operationalExpenses: 0,
-  executedRefunds: 0, consolidatedCashTotal: peso(800000), registeredCancellations: 0, registeredOperationalCosts: 0,
+  reportedPeriod: '2026-08', periodIncome: peso(1000000), operationalPayments: 0, operationalExpenses: 0,
+  executedRefunds: 0, consolidatedCashTotal: peso(1000000), registeredCancellations: 0, registeredOperationalCosts: 0,
 };
 const ZERO: MonthlyPeriod = { ...AUG, reportedPeriod: '2026-09', periodIncome: 0, consolidatedCashTotal: 0 };
-const SUMMARY: PeriodSummary = { reportedPeriod: '2026-09', confirmedSales: peso(4150000), periodIncome: peso(3380000), registeredOperationalCosts: peso(480000), registeredCancellations: 2 };
-const DAY: DailyDashboard = { reportDate: '2026-09-03', createdReservations: 12, pendingPaymentReservations: 6, confirmedReservations: 18, confirmedWithBalance: 3, cancelledReservations: 2, upcomingServices: 4 };
+const SUMMARY: PeriodSummary = { reportedPeriod: '2026-09', confirmedSales: peso(7677400), periodIncome: peso(1290000), registeredOperationalCosts: 0, registeredCancellations: 0 };
+const DAY: DailyDashboard = { reportDate: '2026-09-01', createdReservations: 0, pendingPaymentReservations: 3, confirmedReservations: 3, confirmedWithBalance: 1, cancelledReservations: 0, upcomingServices: 4 };
 const flat = (text: string | null | undefined) => (text ?? '').replace(/\s+/g, ' ').trim();
 
 class FixedMonthly extends MonthlyReportSource {
@@ -138,7 +140,7 @@ describe('eachPeriodShowsItsEightFieldsWithTheMockupLabels', () => {
     const { host } = await renderPage(new FixedMonthly([SEP]), new FixedSummary(SUMMARY));
     const [entry] = entries(host);
     expect(flat(entry.querySelector('p')?.textContent)).toBe('Período reportado');
-    expect(fields(entry)).toEqual(LABELS.map((label, i) => [label, ['$3.380.000', '$300.000', '$500.000', '$0', '$2.580.000', '2', '$480.000'][i]]));
+    expect(fields(entry)).toEqual(LABELS.map((label, i) => [label, ['$1.290.000', '$0', '$250.000', '$0', '$1.040.000', '0', 'Sin costos operacionales registrados'][i]]));
     expect(entry.querySelector('dl')).not.toBeNull();
     expect(entry.getAttribute('aria-labelledby')).toBe(entry.querySelector('h3')?.id);
   });
@@ -153,10 +155,10 @@ describe('eachPeriodShowsItsEightFieldsWithTheMockupLabels', () => {
 
 describe('theConsolidatedTotalAddsNoDailyBase', () => {
   const CLOSURES: CashMovement[] = [
-    { id: 'b1', date: '2026-09-01', kind: 'base', amount: peso(300000) }, { id: 'i1', date: '2026-09-01', kind: 'income', amount: peso(1000000) },
-    { id: 'b2', date: '2026-09-02', kind: 'base', amount: peso(300000) }, { id: 'i2', date: '2026-09-02', kind: 'income', amount: peso(500000) },
-    { id: 'p1', date: '2026-09-02', kind: 'operational-payment', amount: peso(100000) }, { id: 'e1', date: '2026-09-02', kind: 'expense', amount: peso(50000) },
-    { id: 'r1', date: '2026-09-02', kind: 'refund', amount: peso(25000) },
+    { id: 'b1', date: '2026-09-01', kind: 'base', amount: peso(300000), medium: 'CASH' }, { id: 'i1', date: '2026-09-01', kind: 'income', amount: peso(1000000), medium: 'CASH' },
+    { id: 'b2', date: '2026-09-02', kind: 'base', amount: peso(300000), medium: 'CASH' }, { id: 'i2', date: '2026-09-02', kind: 'income', amount: peso(500000), medium: 'CASH' },
+    { id: 'p1', date: '2026-09-02', kind: 'operational-payment', amount: peso(100000), medium: 'CASH' }, { id: 'e1', date: '2026-09-02', kind: 'expense', amount: peso(50000), medium: 'CASH' },
+    { id: 'r1', date: '2026-09-02', kind: 'refund', amount: peso(25000), medium: 'CASH' },
   ];
 
   it('is income minus payments, expenses and executed refunds, with the two bases of 300.000 left out', () => {
@@ -171,15 +173,33 @@ describe('theConsolidatedTotalAddsNoDailyBase', () => {
   });
 
   it('lists the periods newest first and takes the registered cancellations and costs of each', () => {
-    const list = consolidate([{ id: 'a', date: '2026-08-31', kind: 'income', amount: 100 }, { id: 'b', date: '2026-09-01', kind: 'income', amount: 200 }], { '2026-09': { cancellations: 2, costs: 500 } });
+    const list = consolidate([{ id: 'a', date: '2026-08-31', kind: 'income', amount: 100, medium: 'CASH' }, { id: 'b', date: '2026-09-01', kind: 'income', amount: 200, medium: 'CASH' }], { '2026-09': { cancellations: 2, costs: 500 } });
     expect(list.map((p) => p.reportedPeriod)).toEqual(['2026-09', '2026-08']);
     expect(list[0]).toMatchObject({ registeredCancellations: 2, registeredOperationalCosts: 500 });
     expect(list[1]).toMatchObject({ registeredCancellations: 0, registeredOperationalCosts: 0 });
   });
 
-  it('the demo answers Septiembre 2026 with 2.580.000, not 3.180.000, and Agosto 2026 with 800.000', async () => {
+  it('the demo answers one period, Septiembre 2026 with 1.040.000, read from the movements of the cash store (the mockup has no closures)', async () => {
     const list = await new DemoMonthlyReportSource().periods();
-    expect(list).toEqual([SEP, AUG]);
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject(SEP);
+  });
+
+  it('closing the day does not add a period nor count its movements twice', async () => {
+    const store = new DemoCashStore({ now: () => Date.parse('2026-09-01T18:05:00'), actor: () => 'Administrador del tenant' });
+    store.close('k-1');
+    const list = await new DemoMonthlyReportSource(store).periods();
+    expect(list).toHaveLength(1);
+    expect(list[0]).toMatchObject(SEP);
+  });
+
+  it('the report follows the cash: a movement registered in the store changes the period', async () => {
+    const store = new DemoCashStore({ now: () => Date.parse('2026-09-01T16:00:00'), actor: () => 'Administrador del tenant' });
+    const monthly = new DemoMonthlyReportSource(store);
+    store.register({ movementType: 'EXPENSE', concept: 'Compra', paymentMedium: 'CASH', amountCents: peso(10000) }, 'k-1');
+    const [sep] = await monthly.periods();
+    expect(sep).toMatchObject({ operationalExpenses: peso(260000), consolidatedCashTotal: peso(1030000) });
+    expect((await new DemoPeriodSummarySource(monthly).current()).periodIncome).toBe(peso(1290000));
   });
 });
 
@@ -202,7 +222,7 @@ describe('aPeriodWithoutMovementsIsShownInZeroWithoutError', () => {
   it('the demo lists the month of the report date in zeros for the fixture empty-period, and an error for failing-monthly', async () => {
     history.replaceState({}, '', '/?demoFixtures=empty-period');
     const monthly = new DemoMonthlyReportSource();
-    expect(await monthly.periods()).toEqual([ZERO]);
+    expect(await monthly.periods()).toEqual([{ ...ZERO, countedMovements: 0, incomeInCash: 0, incomeByTransfer: 0 }]);
     expect(await new DemoPeriodSummarySource(monthly).current()).toEqual({ reportedPeriod: '2026-09', confirmedSales: 0, periodIncome: 0, registeredOperationalCosts: 0, registeredCancellations: 0 });
     history.replaceState({}, '', '/?demoFixtures=failing-monthly');
     await expect(monthly.periods()).rejects.toBeTruthy();
@@ -212,7 +232,7 @@ describe('aPeriodWithoutMovementsIsShownInZeroWithoutError', () => {
 
 describe('noOperationalCostSaysSinCostosOperacionalesRegistrados', () => {
   it('says it for August and shows the amount for September', async () => {
-    const { host } = await renderPage(new FixedMonthly([SEP, AUG]), new FixedSummary(SUMMARY));
+    const { host } = await renderPage(new FixedMonthly([{ ...SEP, registeredOperationalCosts: peso(480000) }, AUG]), new FixedSummary(SUMMARY));
     expect(fields(entries(host)[1])[6]).toEqual(['Costos operacionales registrados en el período', 'Sin costos operacionales registrados']);
     expect(fields(entries(host)[0])[6]).toEqual(['Costos operacionales registrados en el período', '$480.000']);
   });
@@ -222,14 +242,22 @@ describe('summaryRowShowsTheFourValuesOfThePeriod', () => {
   it('writes the four labels, values and notes of the mockup over the seeded September', async () => {
     const { host } = await renderPage(new FixedMonthly([SEP]), new FixedSummary(SUMMARY));
     expect(metrics(host)).toEqual([
-      ['Ventas confirmadas', '$4.150.000', 'Valor comercial confirmado'], ['Ingresos del período', '$3.380.000', 'Dinero recibido o validado en caja'],
-      ['Costos operacionales', '$480.000', 'Servicios ejecutados'], ['Cancelaciones', '2', 'Con causal registrada']]);
+      ['Ventas confirmadas', '$7.677.400', 'Valor comercial confirmado'], ['Ingresos del período', '$1.290.000', 'Dinero recibido o validado en caja'],
+      ['Costos operacionales', '$0', 'Servicios ejecutados'], ['Cancelaciones', '0', 'Con causal registrada']]);
   });
 
   it('shows what the source gives: the view computes none', async () => {
     const odd = { ...SUMMARY, confirmedSales: peso(1), periodIncome: peso(9), registeredOperationalCosts: peso(7), registeredCancellations: 5 };
     const { host } = await renderPage(new FixedMonthly([SEP]), new FixedSummary(odd));
     expect(metrics(host).map((m) => m[1])).toEqual(['$1', '$9', '$7', '5']);
+  });
+
+  it('draws "Sin dato" only in the sales figure when the source has none, never $0, and the other three figures as usual', async () => {
+    const { host } = await renderPage(new FixedMonthly([SEP]), new FixedSummary({ ...SUMMARY, confirmedSales: null }));
+    expect(metrics(host)).toEqual([
+      ['Ventas confirmadas', 'Sin dato', 'Valor comercial confirmado'], ['Ingresos del período', '$1.290.000', 'Dinero recibido o validado en caja'],
+      ['Costos operacionales', '$0', 'Servicios ejecutados'], ['Cancelaciones', '0', 'Con causal registrada']]);
+    expect(host.querySelector('[role="alert"]')).toBeNull();
   });
 
   it('is drawn above the dashboard, and holds no Exportar, CSV, PDF or note about exporting', async () => {
@@ -249,7 +277,7 @@ describe('reportArticleShowsTheSamePeriodsAsTheConsolidation', () => {
     const source = new DemoMonthlyReportSource();
     const { host } = await renderPage(source, new DemoPeriodSummarySource(source));
     const list = await source.periods();
-    expect(entries(host).map((e) => flat(e.querySelector('h3')?.textContent))).toEqual(['Septiembre 2026', 'Agosto 2026']);
+    expect(entries(host).map((e) => flat(e.querySelector('h3')?.textContent))).toEqual(['Septiembre 2026']);
     expect(entries(host).map((e) => fields(e)[4][1])).toEqual(list.map((p) => `$${String(p.consolidatedCashTotal / 100).replace(/\B(?=(\d{3})+(?!\d))/g, '.')}`));
   });
 });
@@ -278,8 +306,8 @@ describe('optionalRolesReadTheReportWithNoAction', () => {
     const { host, settle: again } = await shellAs([role]);
     const content = host.querySelector('main') as HTMLElement;
     await vi.waitFor(async () => { await again(); expect(metrics(content).length).toBe(4); });
-    expect(metrics(content).map((m) => m[1])).toEqual(['$4.150.000', '$3.380.000', '$480.000', '2']);
-    expect(entries(content).length).toBe(2);
+    expect(metrics(content).map((m) => m[1])).toEqual(['$7.677.400', '$1.290.000', '$0', '0']);
+    expect(entries(content).length).toBe(1);
     expect(content.querySelectorAll('input, select, textarea, form').length).toBe(0);
     expect(Array.from(content.querySelectorAll('button:not(.csh-reports-link)')).map((b) => flat(b.textContent))).toEqual(['Exportar CSV', 'Exportar PDF']);
   });

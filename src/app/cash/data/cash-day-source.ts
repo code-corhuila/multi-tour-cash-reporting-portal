@@ -17,6 +17,8 @@ export interface CashMovement {
   readonly afterClosing: boolean;
   readonly registeredAt: string;
   readonly registeredBy: string;
+  /** The reservation a REFUND returns money for (AC-CJ.10); absent on every other type. */
+  readonly reservationId?: string;
 }
 
 /** Everything the screen shows as a number, resolved by the service (RN-CJ1, RN-CJ10); cents, the five outflow and inflow figures unsigned. */
@@ -41,6 +43,10 @@ export interface CashDay {
   /** Cents of physical cash; 0 while the day has no opening. */
   readonly openingBase: number;
   readonly openedBy: string | null;
+  /** The base the service proposes to open the day with (the last registered one); the Colaborador opens with exactly this (AC-CJ.13). */
+  readonly parametrizedBase?: number;
+  /** An earlier day whose cash had its operational opening and was never closed: it accepts no movement and today's cash is independent (AC-CJ.16, GAP-012). */
+  readonly pendingClosure?: { readonly businessDate: string; readonly openedBy: string; readonly openingBase: number };
   readonly movements: readonly CashMovement[];
   readonly metrics: CashDayMetrics;
 }

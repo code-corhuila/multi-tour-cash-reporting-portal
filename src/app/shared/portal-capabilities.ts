@@ -42,7 +42,10 @@ export function roleOf(roles: readonly string[]): ActorRole {
   return (roles.find((role) => isKnown(role) && role !== FAIL_CLOSED_ROLE) as ActorRole | undefined) ?? FAIL_CLOSED_ROLE;
 }
 
-/** Who acts, as the container reported (norm 5.4.1). G-PERM: the session carries only roles, so Gestionar caja is false until it is reported. */
+/** The permission of the token claim `permissions` that is Gestionar caja (HU-SEC-006). */
+export const MANAGE_CASH_PERMISSION = 'MANAGE_CASH';
+
+/** Who acts, as the container reported (norm 5.4.1). Gestionar caja is true only when the session permissions carry it; a container that reports none leaves it false. */
 @Injectable({ providedIn: 'root', useFactory: () => PortalActor.from([]) })
 export class PortalActor {
   private constructor(readonly role: ActorRole, readonly mayManageCash: boolean) {}
@@ -64,8 +67,8 @@ export class PortalCapabilities {
   canReadCash(): boolean { return this.row.readCash; }
   canOperateCash(): boolean { return this.row.operateCash === 'always' || (this.row.operateCash === 'if-granted' && this.mayManageCash); }
   canChangeBase(): boolean { return this.row.changeBase; }
-  /** DP-CJ3: the correction after a closing is the reopening record, so it follows the operate row. */
-  canCorrectClosure(): boolean { return this.canOperateCash(); }
+  /** T-07 and T-08: "Registrar corrección" of the history is for the Administrador only, as the mockup gives it (never a Colaborador, with or without Gestionar caja). DP-CJ3 stays open. */
+  canCorrectClosure(): boolean { return this.row.changeBase; }
   /** HU-CSH-002: the area Reportes and its dashboard; the screen has no action to ask for. */
   canReadReports(): boolean { return this.row.readReports; }
   /** The target of "Ir a reservas" is the commercial portal: its row is read by the five internal roles. */
