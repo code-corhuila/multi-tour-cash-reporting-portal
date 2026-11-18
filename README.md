@@ -23,8 +23,7 @@ demo sources). Copy `dist/portal.js` and `dist/portal.css` to `portals/cash-repo
 
 ## Where its data is
 
-Nowhere: it stores nothing and reads no variable. The production module registers the HTTP adapters of the read ports of the day and the closures (`src/app/http/`, over `props.apiClient`, route `/api/v1/cash-reporting`) and offers only "Caja" and its history; the writers of the opening, the base and the movements are registered too (branch 2), and so are the closing, the pending closing and the reopening (branch 3: the movement form and the closing are drawn), and so is the correction note of a closure (TD-12: the Administrador sees its form in the history), while the reports and the monthly consolidation have no adapter yet and are not offered (micro plan
-D-CSH-02). Demo data lives only in the demo build.
+Nowhere: it stores nothing and reads no variable. The production module registers the HTTP adapters of every port (`src/app/sources.ts`, `src/app/http/`, over `props.apiClient`, route `/api/v1/cash-reporting`): the read ports of the day and the closures, the writers of the opening, the base, the movements, the closing, the pending closing, the reopening and the correction note of a closure, the daily dashboard of screen 16 (HU-CSH-002) and the monthly report and period summary (HU-CSH-003). The areas "Reportes" and "Consolidación mensual" appear by themselves because they ask for these ports. Demo data lives only in the demo build.
 
 ## How to test
 
@@ -49,10 +48,9 @@ Any change that moves one of these figures records the new measure here.
 
 Pillar 9: the portal loads no image or file of its own. The only resource that needs the container policy is the export of screen 16 (CSV and PDF), which is saved through a temporary link to a Blob: the container must allow `blob:` for downloads under `default-src 'self'`. Nothing uses `data:` (checked with a search over `src/`), and no network is involved (RN-CJ9).
 
-## What is missing
+## Status
 
-Pull request 1 of `HU-CSH-001` is the skeleton only. Open (`tasks.md`): T-02 shared base, T-03 to T-08 the
-cash screens and roles, T-09 end to end, which needs the manifest entry `cash-reporting-portal` (`HU-FRT-001`).
+HU-CSH-001, HU-CSH-002 and HU-CSH-003 are built: the daily cash with its history, the reports dashboard and the monthly consolidation. The delivered image shows the demo data on every screen; the production module is wired to the API.
 
 ## Branching
 
