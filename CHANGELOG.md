@@ -5,6 +5,16 @@ The format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) and 
 
 ## [Unreleased]
 
+## [3.1.0] - 2026-11-18
+
+Minor release after 3.0.0. Every entry below is a pull request merged into `develop`, promoted to `qa` with `git cherry-pick -x` and re-applied to `release/3.1.0` the same way; the entry is the title of the original pull request without its type. The frozen head of `qa` is `4a199cb42bf57ae536c143d8b97b7a7966ff5a2f`.
+
+### Changed
+
+#### Cross-cutting: documentation alignment (no single story is named in the pull request)
+
+- Align the readme with the connected adapters and status ([PR 58](https://github.com/code-corhuila/multi-tour-cash-reporting-portal/pull/58), promoted by [PR 59](https://github.com/code-corhuila/multi-tour-cash-reporting-portal/pull/59))
+
 ## [3.0.0] - 2026-11-14
 
 Cut 3 release. Every entry below is a pull request merged into `qa` and re-applied to `release/3.0.0` with `git cherry-pick -x`; the heading of each group is the user story named in the pull request, and the entry is the title of the pull request without its type. The frozen head of `qa` is `c8820d5e69cac92a9371b034172fc0fadeac4b76`.
@@ -47,5 +57,6 @@ Cut 3 release. Every entry below is a pull request merged into `qa` and re-appli
 
 - The cash permission fix ([PR 36](https://github.com/code-corhuila/multi-tour-cash-reporting-portal/pull/36))
 
-[Unreleased]: https://github.com/code-corhuila/multi-tour-cash-reporting-portal/compare/v3.0.0...HEAD
+[Unreleased]: https://github.com/code-corhuila/multi-tour-cash-reporting-portal/compare/v3.1.0...HEAD
+[3.1.0]: https://github.com/code-corhuila/multi-tour-cash-reporting-portal/compare/v3.0.0...v3.1.0
 [3.0.0]: https://github.com/code-corhuila/multi-tour-cash-reporting-portal/releases/tag/v3.0.0
